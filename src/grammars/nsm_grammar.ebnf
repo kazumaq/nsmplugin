@@ -1,0 +1,65 @@
+/* 
+File: src/grammars/nsm_grammar.ebnf
+Natural Semantic Metalanguage (NSM) Grammar
+------------------------------------------
+This EBNF grammar represents the structure of NSM, a theoretical approach to
+language that aims to capture the universal features of human languages using a
+set of semantic primes. The grammar includes simple clauses, complex clauses,
+questions, negations, and molecules. 
+*/
+
+Expression ::= SimpleClause | ComplexClause | Question | Negation | Molecule
+
+/* Simple Clauses */
+SimpleClause ::= PredicatePhrase
+PredicatePhrase ::= Subject PrimePredicatePhraseObject {PrimePredicatePhraseObject}
+Subject ::= SubstantivePrime
+
+/* Complex Clauses */
+ComplexClause ::= IfClause | QuasiRelativeClause | AdverbialClause | AnalogyClause
+IfClause ::= "IF" Expression "THEN" Expression
+QuasiRelativeClause ::= SubstantivePrime "WHERE" Expression
+AdverbialClause ::= ("WHEN" | "BECAUSE") Expression
+AnalogyClause ::= Expression "LIKE" Expression "AS" Expression
+
+/* Predicate Phrase Objects */
+PrimePredicatePhraseObject ::= (SubstantivePrime | RelationalSubstantivePrime | DeterminerPhrase | QuantifierPhrase | EvaluatorPhrase | DescriptorPhrase | MentalPredicatePrime | SpeechPredicatePrime | ActionEventMovementPredicatePrime | ExistencePossessionPredicatePrime | LifeDeathPredicatePrime | TimePredicatePrime | SpacePredicatePrime | LogicalConceptPrime | IntensifierAugmentorPrime | SimilarityPrime | Molecule)
+
+/* Determiner, Quantifier, Evaluator, and Descriptor Phrases */
+DeterminerPhrase ::= DeterminerPrime SubstantivePrime
+QuantifierPhrase ::= QuantifierPrime SubstantivePrime
+EvaluatorPhrase ::= EvaluatorPrime SubstantivePrime
+DescriptorPhrase ::= DescriptorPrime SubstantivePrime
+
+/* NSM Prime Categories */
+SubstantivePrime ::= "I" | "YOU" | "SOMEONE" | "PEOPLE" | "SOMETHING" | "THING" | "BODY"
+RelationalSubstantivePrime ::= "KIND" | "PART"
+DeterminerPrime ::= "THIS" | "THE_SAME" | "OTHER" | "ELSE" | "ANOTHER"
+QuantifierPrime ::= "ONE" | "TWO" | "SOME" | "ALL" | "MUCH" | "MANY" | "LITTLE" | "FEW"
+EvaluatorPrime ::= "GOOD" | "BAD"
+DescriptorPrime ::= "BIG" | "SMALL"
+MentalPredicatePrime ::= "THINK" | "KNOW" | "WANT" | "DON'T_WANT" | "FEEL" | "SEE" | "HEAR"
+SpeechPredicatePrime ::= "SAY" | "WORDS" | "TRUE"
+ActionEventMovementPredicatePrime ::= "DO" | "HAPPEN" | "MOVE"
+ExistencePossessionPredicatePrime ::= "BE" | "THERE_IS" | "BE_SOMEONE" | "BE_SOMETHING" | "IS_MINE"
+LifeDeathPredicatePrime ::= "LIVE" | "DIE"
+TimePredicatePrime ::= "WHEN" | "TIME" | "NOW" | "BEFORE" | "AFTER" | "A_LONG_TIME" | "A_SHORT_TIME" | "FOR_SOME_TIME" | "MOMENT"
+SpacePredicatePrime ::= "WHERE" | "PLACE" | "HERE" | "ABOVE" | "BELOW" | "FAR" | "NEAR" | "SIDE" | "INSIDE" | "TOUCH"
+LogicalConceptPrime ::= "NOT" | "MAYBE" | "CAN" | "BECAUSE" | "IF"
+IntensifierAugmentorPrime ::= "VERY" | "MORE"
+SimilarityPrime ::= "LIKE" | "AS" | "WAY"
+
+/* Questions */
+Question ::= Question_Word SimpleClause
+Question_Word ::= "WHERE" | "HOW" | "WHY" | "WHAT"
+
+/* Negations */
+Negation ::= "NOT" (SubstantivePrime | Molecule)
+
+/* Molecules */
+Molecule ::= (SubstantivePrime | Auxiliary_Word) {SubstantivePrime | Auxiliary_Word}
+Auxiliary_Word ::= "AND"
+
+/*
+This grammar provides a way to construct sentences in the NSM framework. It includes the categories of primes and how they combine to create more complex expressions.
+*/
