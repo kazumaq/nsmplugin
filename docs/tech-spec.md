@@ -29,146 +29,9 @@ In summary, the VSCode plugin for NSM syntax support will offer the following ke
 
 ## Implementation Steps
 
-1. Define the vocabulary, including NSM primes and auxiliary words, for each supported language in the configuration files.
+### List of all NSM primes to be recognized and supported by the plugin.
 
-```python
-import nltk
-
-# Define the vocabulary and grammar rules for each language/culture
-languages = {
-    'english': {
-        'vocabulary': ['mother', 'buy'],
-        'grammar_rules': """
-            S -> NP VP
-            NP -> Det N
-            VP -> V NP | V
-            Det -> 'I' | 'YOU' | 'SOMEONE' | 'SOMETHING' | 'THIS'
-            N -> 'THING' | 'mother'
-            V -> 'WANT' | 'KNOW' | 'FEEL' | 'DO' | 'buy'
-        """
-    },
-    'polish': {
-        'vocabulary': ['tęsknić'],
-        'grammar_rules': """
-            S -> NP VP
-            NP -> Det N
-            VP -> V NP | V
-            Det -> 'I' | 'YOU' | 'SOMEONE' | 'SOMETHING' | 'THIS'
-            N -> 'THING'
-            V -> 'WANT' | 'KNOW' | 'FEEL' | 'DO' | 'tęsknić'
-        """
-    }
-}
-
-def load_language(language):
-    vocabulary = languages[language]['vocabulary']
-    grammar_rules = languages[language]['grammar_rules']
-    grammar = nltk.CFG.fromstring(grammar_rules)
-    parser = nltk.parse.EarleyChartParser(grammar)
-    return vocabulary, parser
-
-def check_sentence(sentence, language):
-    vocabulary, parser = load_language(language)
-
-    try:
-        tokens = nltk.word_tokenize(sentence)
-
-        parse_result = parser.parse_one(tokens)
-        if parse_result is not None:
-            molecule_feedback = [token for token in tokens if token in vocabulary]
-            if molecule_feedback:
-                return f"The sentence is grammatical. The following molecules are specific to {language}: {', '.join(molecule_feedback)}"
-            else:
-                return "The sentence is grammatical."
-        else:
-            return "The sentence is not grammatical."
-    except ValueError as e:
-        return f"Error: {e}"
-
-```
-
-1. Create a formal grammar specifying how the words can be combined in the NSM syntax.
-
-Cliff: The grammar I provided earlier is an informal description of the syntax rules for NSM expressions, tailored to the requirements of the VS Code plugin. To create a formal grammar, we can represent the NSM language syntax using a context-free grammar in the Extended Backus-Naur Form (EBNF).
-
-Here's an example of the NSM syntax rules represented in EBNF:
-
-```
-/*
-File: src/grammars/nsm_grammar.ebnf
-Natural Semantic Metalanguage (NSM) Grammar
-------------------------------------------
-This EBNF grammar represents the structure of NSM, a theoretical approach to
-language that aims to capture the universal features of human languages using a
-set of semantic primes. The grammar includes simple clauses, complex clauses,
-questions, negations, and molecules.
-*/
-
-Expression ::= SimpleClause | ComplexClause | Question | Negation | Molecule
-
-/* Simple Clauses */
-SimpleClause ::= PredicatePhrase
-PredicatePhrase ::= Subject PrimePredicatePhraseObject {PrimePredicatePhraseObject}
-Subject ::= SubstantivePrime
-
-/* Complex Clauses */
-ComplexClause ::= IfClause | QuasiRelativeClause | AdverbialClause | AnalogyClause
-IfClause ::= "IF" Expression "THEN" Expression
-QuasiRelativeClause ::= SubstantivePrime "WHERE" Expression
-AdverbialClause ::= ("WHEN" | "BECAUSE") Expression
-AnalogyClause ::= Expression "LIKE" Expression "AS" Expression
-
-/* Predicate Phrase Objects */
-PrimePredicatePhraseObject ::= (SubstantivePrime | RelationalSubstantivePrime | DeterminerPhrase | QuantifierPhrase | EvaluatorPhrase | DescriptorPhrase | MentalPredicatePrime | SpeechPredicatePrime | ActionEventMovementPredicatePrime | ExistencePossessionPredicatePrime | LifeDeathPredicatePrime | TimePredicatePrime | SpacePredicatePrime | LogicalConceptPrime | IntensifierAugmentorPrime | SimilarityPrime | Molecule)
-
-/* Determiner, Quantifier, Evaluator, and Descriptor Phrases */
-DeterminerPhrase ::= DeterminerPrime SubstantivePrime
-QuantifierPhrase ::= QuantifierPrime SubstantivePrime
-EvaluatorPhrase ::= EvaluatorPrime SubstantivePrime
-DescriptorPhrase ::= DescriptorPrime SubstantivePrime
-
-/* NSM Prime Categories */
-SubstantivePrime ::= "I" | "YOU" | "SOMEONE" | "PEOPLE" | "SOMETHING" | "THING" | "BODY"
-RelationalSubstantivePrime ::= "KIND" | "PART"
-DeterminerPrime ::= "THIS" | "THE_SAME" | "OTHER" | "ELSE" | "ANOTHER"
-QuantifierPrime ::= "ONE" | "TWO" | "SOME" | "ALL" | "MUCH" | "MANY" | "LITTLE" | "FEW"
-EvaluatorPrime ::= "GOOD" | "BAD"
-DescriptorPrime ::= "BIG" | "SMALL"
-MentalPredicatePrime ::= "THINK" | "KNOW" | "WANT" | "DON'T_WANT" | "FEEL" | "SEE" | "HEAR"
-SpeechPredicatePrime ::= "SAY" | "WORDS" | "TRUE"
-ActionEventMovementPredicatePrime ::= "DO" | "HAPPEN" | "MOVE"
-ExistencePossessionPredicatePrime ::= "BE" | "THERE_IS" | "BE_SOMEONE" | "BE_SOMETHING" | "IS_MINE"
-LifeDeathPredicatePrime ::= "LIVE" | "DIE"
-TimePredicatePrime ::= "WHEN" | "TIME" | "NOW" | "BEFORE" | "AFTER" | "A_LONG_TIME" | "A_SHORT_TIME" | "FOR_SOME_TIME" | "MOMENT"
-SpacePredicatePrime ::= "WHERE" | "PLACE" | "HERE" | "ABOVE" | "BELOW" | "FAR" | "NEAR" | "SIDE" | "INSIDE" | "TOUCH"
-LogicalConceptPrime ::= "NOT" | "MAYBE" | "CAN" | "BECAUSE" | "IF"
-IntensifierAugmentorPrime ::= "VERY" | "MORE"
-SimilarityPrime ::= "LIKE" | "AS" | "WAY"
-
-/* Questions */
-Question ::= Question_Word SimpleClause
-Question_Word ::= "WHERE" | "HOW" | "WHY" | "WHAT"
-
-/* Negations */
-Negation ::= "NOT" (SubstantivePrime | Molecule)
-
-/* Molecules */
-Molecule ::= (SubstantivePrime | Auxiliary_Word) {SubstantivePrime | Auxiliary_Word}
-Auxiliary_Word ::= "AND"
-
-/*
-This grammar provides a way to construct sentences in the NSM framework. It includes the categories of primes and how they combine to create more complex expressions.
-*/
-
-```
-
-This EBNF representation is more formal and can be used to create a parser for NSM expressions.
-
-### NSM Concepts:
-
-#### A list of all NSM primes to be recognized and supported by the plugin.
-
-1.
+Define the vocabulary, including NSM primes and auxiliary words
 
 | Category                  | Primes                                                                          |
 | ------------------------- | ------------------------------------------------------------------------------- |
@@ -190,6 +53,10 @@ This EBNF representation is more formal and can be used to create a parser for N
 | Similarity                | LIKE/AS/WAY                                                                     |
 
 Auxiliary words: AND, OR, NOT, IF, OF, THAT, BY, MORE, LESS, THAN, CAN, MUST, SHOULD, SO
+
+### Define the Formal grammar
+
+Specify how the words can be combined in the NSM syntax.
 
 #### Guidelines for defining and using molecules in the plugin.
 
@@ -231,9 +98,9 @@ In order to provide support for basic NSM grammar structures, we incorporated th
 
 These features ensure that the plugin accurately supports basic NSM grammar structures, making it easier for users to work with NSM expressions and maintain correct syntax.
 
-### Syntax Rules
+#### Syntax Rules
 
-#### A set of syntax rules for NSM expressions that detail valid combinations of primes, molecules, and auxiliary words.
+##### A set of syntax rules for NSM expressions that detail valid combinations of primes, molecules, and auxiliary words.
 
 As part of our work, we defined syntax rules for NSM expressions to ensure proper structure and meaningful combinations of NSM primes, molecules, and auxiliary words. Here's an overview of the main syntax rules:
 
@@ -325,48 +192,91 @@ To provide a clear understanding of the syntax rules for NSM expressions, we hav
 
 These examples demonstrate some of the syntax rules for NSM expressions, ensuring that users can create valid combinations of primes, molecules, and auxiliary words.
 
-2. Define the grammar rules: Based on the syntax structures described earlier, we can create a formal grammar that specifies how these words can be combined.
+### Grammar rules
 
-3. Implement a parser: Next, we need to write a parser that can process input sentences based on the defined grammar rules. There are several parsing algorithms available, such as Earley, CYK, or GLR, that can handle different types of grammars. Depending on the complexity of our grammar and the desired efficiency, we can choose the most suitable algorithm.
+Based on the syntax structures described earlier, we can create a formal grammar that specifies how these words can be combined.
+
+Here are the NSM syntax rules represented in EBNF:
+
+```
+/*
+File: src/grammars/nsm_grammar.ebnf
+Natural Semantic Metalanguage (NSM) Grammar
+------------------------------------------
+This EBNF grammar represents the structure of NSM, a theoretical approach to
+language that aims to capture the universal features of human languages using a
+set of semantic primes. The grammar includes simple clauses, complex clauses,
+questions, negations, and molecules.
+*/
+
+Expression ::= SimpleClause | ComplexClause | Question | Negation | Molecule
+
+/* Simple Clauses */
+SimpleClause ::= PredicatePhrase
+PredicatePhrase ::= Subject PrimePredicatePhraseObject {PrimePredicatePhraseObject}
+Subject ::= SubstantivePrime
+
+/* Complex Clauses */
+ComplexClause ::= IfClause | QuasiRelativeClause | AdverbialClause | AnalogyClause
+IfClause ::= "IF" Expression "THEN" Expression
+QuasiRelativeClause ::= SubstantivePrime "WHERE" Expression
+AdverbialClause ::= ("WHEN" | "BECAUSE") Expression
+AnalogyClause ::= Expression "LIKE" Expression "AS" Expression
+
+/* Predicate Phrase Objects */
+PrimePredicatePhraseObject ::= (SubstantivePrime | RelationalSubstantivePrime | DeterminerPhrase | QuantifierPhrase | EvaluatorPhrase | DescriptorPhrase | MentalPredicatePrime | SpeechPredicatePrime | ActionEventMovementPredicatePrime | ExistencePossessionPredicatePrime | LifeDeathPredicatePrime | TimePredicatePrime | SpacePredicatePrime | LogicalConceptPrime | IntensifierAugmentorPrime | SimilarityPrime | Molecule)
+
+/* Determiner, Quantifier, Evaluator, and Descriptor Phrases */
+DeterminerPhrase ::= DeterminerPrime SubstantivePrime
+QuantifierPhrase ::= QuantifierPrime SubstantivePrime
+EvaluatorPhrase ::= EvaluatorPrime SubstantivePrime
+DescriptorPhrase ::= DescriptorPrime SubstantivePrime
+
+/* NSM Prime Categories */
+SubstantivePrime ::= "I" | "YOU" | "SOMEONE" | "PEOPLE" | "SOMETHING" | "THING" | "BODY"
+RelationalSubstantivePrime ::= "KIND" | "PART"
+DeterminerPrime ::= "THIS" | "THE_SAME" | "OTHER" | "ELSE" | "ANOTHER"
+QuantifierPrime ::= "ONE" | "TWO" | "SOME" | "ALL" | "MUCH" | "MANY" | "LITTLE" | "FEW"
+EvaluatorPrime ::= "GOOD" | "BAD"
+DescriptorPrime ::= "BIG" | "SMALL"
+MentalPredicatePrime ::= "THINK" | "KNOW" | "WANT" | "DON'T_WANT" | "FEEL" | "SEE" | "HEAR"
+SpeechPredicatePrime ::= "SAY" | "WORDS" | "TRUE"
+ActionEventMovementPredicatePrime ::= "DO" | "HAPPEN" | "MOVE"
+ExistencePossessionPredicatePrime ::= "BE" | "THERE_IS" | "BE_SOMEONE" | "BE_SOMETHING" | "IS_MINE"
+LifeDeathPredicatePrime ::= "LIVE" | "DIE"
+TimePredicatePrime ::= "WHEN" | "TIME" | "NOW" | "BEFORE" | "AFTER" | "A_LONG_TIME" | "A_SHORT_TIME" | "FOR_SOME_TIME" | "MOMENT"
+SpacePredicatePrime ::= "WHERE" | "PLACE" | "HERE" | "ABOVE" | "BELOW" | "FAR" | "NEAR" | "SIDE" | "INSIDE" | "TOUCH"
+LogicalConceptPrime ::= "NOT" | "MAYBE" | "CAN" | "BECAUSE" | "IF"
+IntensifierAugmentorPrime ::= "VERY" | "MORE"
+SimilarityPrime ::= "LIKE" | "AS" | "WAY"
+
+/* Questions */
+Question ::= Question_Word SimpleClause
+Question_Word ::= "WHERE" | "HOW" | "WHY" | "WHAT"
+
+/* Negations */
+Negation ::= "NOT" (SubstantivePrime | Molecule)
+
+/* Molecules */
+Molecule ::= (SubstantivePrime | Auxiliary_Word) {SubstantivePrime | Auxiliary_Word}
+Auxiliary_Word ::= "AND"
+
+/*
+This grammar provides a way to construct sentences in the NSM framework. It includes the categories of primes and how they combine to create more complex expressions.
+*/
+
+```
+
+This EBNF representation is more formal and can be used to create a parser for NSM expressions.
+This grammar though, we need to convert it to a TextMate grammar, which is a format that VSCode can understand. If curious, the TextMate grammar file is located in the `src/grammars/nsm_grammar.tmLanguage.json` file. We're not including it here because it's quite long and not very readable.
+
+## Parser
+
+Next, we need to write a parser that can process input sentences based on the defined grammar rules. There are several parsing algorithms available, such as Earley, CYK, or GLR, that can handle different types of grammars. Depending on the complexity of our grammar and the desired efficiency, we can choose the most suitable algorithm.
 
 4. Check for errors and provide feedback: Once the parser processes an input sentence, it can identify any violations of the grammar rules or the use of disallowed words. The program can then provide feedback to the user, indicating which part of the sentence is problematic and suggesting how to correct it.
 
 Here's a high-level outline of a possible Python program using the NLTK library, which provides tools for natural language processing, including grammar definition and parsing:
-
-```python
-import nltk
-
-# Define the grammar rules as a string
-grammar_rules = """
-S -> NP VP
-NP -> Det N
-VP -> V NP | V
-Det -> 'I' | 'YOU' | 'SOMEONE' | 'SOMETHING' | 'THIS'
-N -> 'THING'
-V -> 'WANT' | 'KNOW' | 'FEEL' | 'DO'
-"""
-
-# Create a context-free grammar (CFG) from the grammar rules
-grammar = nltk.CFG.fromstring(grammar_rules)
-
-# Create a parser using the Earley algorithm
-parser = nltk.parse.EarleyChartParser(grammar)
-
-def check_sentence(sentence):
-    try:
-        # Tokenize the input sentence
-        tokens = nltk.word_tokenize(sentence)
-
-        # Check if the sentence is grammatical according to the defined rules
-        if parser.parse_one(tokens) is not None:
-            return "The sentence is grammatical."
-        else:
-            return "The sentence is not grammatical."
-    except ValueError as e:
-        return f"Error: {e}"
-```
-
-Please note that the above example is a simple illustration and does not cover all the complexities of the syntax structures described earlier. To fully implement the syntax, you would need to extend the grammar rules and adjust the parser accordingly.
 
 Also, keep in mind that this exercise is focused on creating a syntax based on NSM primes and not an inherent part of the NSM theory itself. The primary goal of NSM is to find a set of semantic primitives that can be used to describe the meaning of more complex expressions in any language.
 
