@@ -1,6 +1,7 @@
 ﻿# Extensible VSCode Plugin for Natural Semantic Metalanguage Syntax Analysis
 
 ## Project Overview
+
 The aim of this project is to develop a comprehensive VSCode plugin that provides robust support for Natural Semantic Metalanguage (NSM) syntax in text files with the `.nsm` extension. The plugin will focus on enhancing the user experience when working with NSM texts by offering several key features, such as error detection, error highlighting, suggestions for fixes, and multilingual support. The plugin will be designed with extensibility in mind, enabling users to define language-specific settings and molecule definitions in configuration files, and allowing for future support of additional languages.
 
 The plugin will integrate seamlessly with the VSCode IntelliSense system to offer autocompletion suggestions for NSM primes, molecules, and auxiliary words, thereby improving the efficiency of writing NSM text. A built-in documentation viewer will be included to provide users with easy access to NSM concepts, syntax rules, and language-specific information, making the learning process more convenient and engaging.
@@ -68,7 +69,7 @@ def load_language(language):
 
 def check_sentence(sentence, language):
     vocabulary, parser = load_language(language)
-    
+
     try:
         tokens = nltk.word_tokenize(sentence)
 
@@ -86,22 +87,21 @@ def check_sentence(sentence, language):
 
 ```
 
-
 1. Create a formal grammar specifying how the words can be combined in the NSM syntax.
 
-Cliff: The grammar I provided earlier is an informal description of the syntax rules for NSM expressions, tailored to the requirements of the VS Code plugin. To create a formal grammar, we can represent the NSM language syntax using a context-free grammar in the Extended Backus-Naur Form (EBNF). 
+Cliff: The grammar I provided earlier is an informal description of the syntax rules for NSM expressions, tailored to the requirements of the VS Code plugin. To create a formal grammar, we can represent the NSM language syntax using a context-free grammar in the Extended Backus-Naur Form (EBNF).
 
 Here's an example of the NSM syntax rules represented in EBNF:
 
 ```
-/* 
+/*
 File: src/grammars/nsm_grammar.ebnf
 Natural Semantic Metalanguage (NSM) Grammar
 ------------------------------------------
 This EBNF grammar represents the structure of NSM, a theoretical approach to
 language that aims to capture the universal features of human languages using a
 set of semantic primes. The grammar includes simple clauses, complex clauses,
-questions, negations, and molecules. 
+questions, negations, and molecules.
 */
 
 Expression ::= SimpleClause | ComplexClause | Question | Negation | Molecule
@@ -162,44 +162,46 @@ This grammar provides a way to construct sentences in the NSM framework. It incl
 
 ```
 
-
-This EBNF representation is more formal and can be used to create a parser for NSM expressions. 
-
+This EBNF representation is more formal and can be used to create a parser for NSM expressions.
 
 ### NSM Concepts:
+
 #### A list of all NSM primes to be recognized and supported by the plugin.
+
 1.
 
-| Category              | Primes                                        |
-|-----------------------|-----------------------------------------------|
-| Substantives          | I, YOU, SOMEONE, PEOPLE, SOMETHING/THING, BODY |
-| Relational Substantives| KIND, PART                                    |
-| Determiners           | THIS, THE SAME, OTHER/ELSE/ANOTHER             |
-| Quantifiers           | ONE, TWO, SOME, ALL, MUCH/MANY, LITTLE/FEW     |
-| Evaluators            | GOOD, BAD                                     |
-| Descriptors           | BIG, SMALL                                    |
-| Mental predicates     | THINK, KNOW, WANT, DON'T WANT, FEEL, SEE, HEAR |
-| Speech                | SAY, WORDS, TRUE                               |
-| Actions, Events, Movement | DO, HAPPEN, MOVE                           |
-| Existence, Possession | BE (SOMEWHERE), THERE IS, BE (SOMEONE/SOMETHING), (IS) MINE |
-| Life and Death        | LIVE, DIE                                     |
-| Time                  | WHEN/TIME, NOW, BEFORE, AFTER, A LONG TIME, A SHORT TIME, FOR SOME TIME, MOMENT |
-| Space                 | WHERE/PLACE, HERE, ABOVE, BELOW, FAR, NEAR, SIDE, INSIDE, TOUCH (CONTACT) |
-| Logical Concepts      | NOT, MAYBE, CAN, BECAUSE, IF                   |
-| Intensifier, Augmentor| VERY, MORE                                    |
-| Similarity            | LIKE/AS/WAY                                   |
+| Category                  | Primes                                                                          |
+| ------------------------- | ------------------------------------------------------------------------------- |
+| Substantives              | I, YOU, SOMEONE, PEOPLE, SOMETHING/THING, BODY                                  |
+| Relational Substantives   | KIND, PART                                                                      |
+| Determiners               | THIS, THE SAME, OTHER/ELSE/ANOTHER                                              |
+| Quantifiers               | ONE, TWO, SOME, ALL, MUCH/MANY, LITTLE/FEW                                      |
+| Evaluators                | GOOD, BAD                                                                       |
+| Descriptors               | BIG, SMALL                                                                      |
+| Mental predicates         | THINK, KNOW, WANT, DON'T WANT, FEEL, SEE, HEAR                                  |
+| Speech                    | SAY, WORDS, TRUE                                                                |
+| Actions, Events, Movement | DO, HAPPEN, MOVE                                                                |
+| Existence, Possession     | BE (SOMEWHERE), THERE IS, BE (SOMEONE/SOMETHING), (IS) MINE                     |
+| Life and Death            | LIVE, DIE                                                                       |
+| Time                      | WHEN/TIME, NOW, BEFORE, AFTER, A LONG TIME, A SHORT TIME, FOR SOME TIME, MOMENT |
+| Space                     | WHERE/PLACE, HERE, ABOVE, BELOW, FAR, NEAR, SIDE, INSIDE, TOUCH (CONTACT)       |
+| Logical Concepts          | NOT, MAYBE, CAN, BECAUSE, IF                                                    |
+| Intensifier, Augmentor    | VERY, MORE                                                                      |
+| Similarity                | LIKE/AS/WAY                                                                     |
 
-
-   Auxiliary words: AND, OR, NOT, IF, OF, THAT, BY, MORE, LESS, THAN, CAN, MUST, SHOULD, SO
+Auxiliary words: AND, OR, NOT, IF, OF, THAT, BY, MORE, LESS, THAN, CAN, MUST, SHOULD, SO
 
 #### Guidelines for defining and using molecules in the plugin.
+
 As part of the guidelines for defining and using molecules in the plugin, we established the following:
 
 1. Molecule Definition:
+
    - Molecules should be defined as combinations of NSM primes and/or auxiliary words, with specific meanings and uses within a given language.
    - Users should be able to create custom molecules for their language and store them in a separate configuration file.
 
 2. Molecule Usage:
+
    - When creating NSM expressions, users can utilize pre-defined molecules as building blocks alongside NSM primes and auxiliary words.
    - The plugin should provide syntax highlighting and validation for the molecules, ensuring they are used correctly within the NSM expressions.
 
@@ -210,13 +212,16 @@ As part of the guidelines for defining and using molecules in the plugin, we est
 These guidelines have been incorporated into the development of the plugin, allowing users to define and use molecules effectively within the NSM framework, and enabling the plugin to support language-specific nuances.
 
 #### Support for basic NSM grammar structures, such as subject-verb-object, negation, and question formation.
+
 In order to provide support for basic NSM grammar structures, we incorporated the following features into the plugin:
 
 1. Subject-Verb-Object (SVO) Structure:
+
    - The plugin recognizes and supports the basic SVO structure, ensuring that NSM expressions are formed with valid syntax.
    - Syntax highlighting and validation are applied to SVO structures, allowing users to easily identify and correct any syntax issues.
 
 2. Negation:
+
    - The plugin supports negation by recognizing the NSM prime "NOT" and its correct usage in NSM expressions.
    - Syntax highlighting and validation are provided for negation structures, ensuring that users can effectively negate their expressions.
 
@@ -227,58 +232,71 @@ In order to provide support for basic NSM grammar structures, we incorporated th
 These features ensure that the plugin accurately supports basic NSM grammar structures, making it easier for users to work with NSM expressions and maintain correct syntax.
 
 ### Syntax Rules
+
 #### A set of syntax rules for NSM expressions that detail valid combinations of primes, molecules, and auxiliary words.
 
 As part of our work, we defined syntax rules for NSM expressions to ensure proper structure and meaningful combinations of NSM primes, molecules, and auxiliary words. Here's an overview of the main syntax rules:
 
-1. Basic sentence structure: 
+1. Basic sentence structure:
+
    - NSM expressions should follow a subject-verb-object (SVO) structure, where applicable, using NSM primes or molecules for each component.
 
-2. Negation: 
+2. Negation:
+
    - Negation is achieved by using the NSM prime "NOT" in combination with a verb or an adjective.
 
-3. Auxiliary words: 
+3. Auxiliary words:
+
    - Auxiliary words, such as "AND," "OR," "IF," "THAN," "CAN," "MUST," "SHOULD," and "SO," can be used to connect or relate NSM primes and molecules within an expression.
 
-4. Molecules: 
+4. Molecules:
+
    - Molecules are language-specific combinations of NSM primes and auxiliary words. They can be used in place of a prime within an NSM expression.
    - Molecules must be constructed using valid NSM primes and, where necessary, auxiliary words.
 
 5. Pronouns and determiners:
+
    - NSM expressions should use appropriate pronouns (e.g., I, YOU, SOMEONE) and determiners (e.g., THIS, THE_SAME, OTHER) to provide context and specificity.
 
-6. Tense and aspect: 
+6. Tense and aspect:
+
    - When expressing tense or aspect, NSM expressions should use appropriate NSM primes, such as "BEFORE," "AFTER," "NOW," "FOR_SOME_TIME," and "MOMENT."
 
-7. Conditional statements: 
+7. Conditional statements:
+
    - Conditional statements should use the NSM prime "IF" in combination with other NSM primes or molecules to express hypothetical situations or consequences.
 
-8. Comparisons: 
+8. Comparisons:
    - Comparisons should use NSM primes like "MORE," "LESS," "LIKE," and "AS," along with appropriate auxiliary words, to relate two or more NSM expressions.
 
 These syntax rules provide a framework for constructing meaningful NSM expressions, ensuring that they adhere to the principles of the NSM theory and maintain coherence across different languages.
 
 #### Examples
+
 To provide a clear understanding of the syntax rules for NSM expressions, we have outlined valid combinations of primes, molecules, and auxiliary words. Here are some examples to illustrate these rules:
 
 1. Basic SVO Structure:
 
-   - A valid SVO structure in NSM consists of a subject (S), a verb (V), and an object (O), using NSM primes or molecules. 
-   
+   - A valid SVO structure in NSM consists of a subject (S), a verb (V), and an object (O), using NSM primes or molecules.
+
    Example:
+
    ```
    I SEE SOMETHING
    ```
+
    In this example, "I" is the subject, "SEE" is the verb, and "SOMETHING" is the object. All components are NSM primes, making this a valid NSM expression.
 
 2. Negation:
 
    - Negation is achieved by using the NSM prime "NOT" in combination with a verb or an adjective.
-   
+
    Example:
+
    ```
    I NOT WANT SOMETHING
    ```
+
    In this example, the negation "NOT" is used with the verb "WANT" to indicate the subject's lack of desire for something.
 
 3. Auxiliary Words:
@@ -286,9 +304,11 @@ To provide a clear understanding of the syntax rules for NSM expressions, we hav
    - Auxiliary words, such as "AND," "OR," and "IF," can be used to combine or relate NSM primes and molecules.
 
    Example:
+
    ```
    I FEEL GOOD AND I WANT SOMETHING
    ```
+
    In this example, the auxiliary word "AND" is used to combine two separate NSM expressions: "I FEEL GOOD" and "I WANT SOMETHING."
 
 4. Molecules:
@@ -296,9 +316,11 @@ To provide a clear understanding of the syntax rules for NSM expressions, we hav
    - Molecules are language-specific combinations of NSM primes and auxiliary words. They can be used in place of a prime within an NSM expression.
 
    Example (molecule: LONG_TIME = A_LONG_TIME + FOR_SOME_TIME):
+
    ```
    I LIVE HERE FOR A_LONG_TIME FOR_SOME_TIME
    ```
+
    In this example, the molecule "LONG_TIME" is formed by combining the primes "A_LONG_TIME" and "FOR_SOME_TIME." The molecule is used within the expression to indicate the duration of time the subject has lived in a specific location.
 
 These examples demonstrate some of the syntax rules for NSM expressions, ensuring that users can create valid combinations of primes, molecules, and auxiliary words.
@@ -371,4 +393,3 @@ Also, keep in mind that this exercise is focused on creating a syntax based on N
 - Advanced features, such as syntax-aware search, navigation, and refactoring tools
 
 This tech-spec provides an overview of the project, its requirements, implementation steps, tools and libraries, and possible future extensions. It can serve as a starting point for the development of the NSM syntax support plugin for VSCode.
-

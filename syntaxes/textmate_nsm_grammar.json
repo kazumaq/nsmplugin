@@ -1,0 +1,329 @@
+{
+  "name": "Natural Semantic Metalanguage (NSM) Grammar",
+  "scopeName": "source.nsm",
+  "fileTypes": ["nsm"],
+  "patterns": [
+    {
+      "include": "#expression"
+    }
+  ],
+  "repository": {
+    "expression": {
+      "patterns": [
+        {
+          "include": "#simpleClause"
+        },
+        {
+          "include": "#complexClause"
+        },
+        {
+          "include": "#question"
+        },
+        {
+          "include": "#negation"
+        },
+        {
+          "include": "#molecule"
+        }
+      ]
+    },
+    "simpleClause": {
+      "match": "^(PredicatePhrase)",
+      "name": "meta.clause.simple.nsm",
+      "patterns": [
+        {
+          "include": "#predicatePhrase"
+        }
+      ]
+    },
+    "predicatePhrase": {
+      "match": "^(Subject PrimePredicatePhraseObject {PrimePredicatePhraseObject})",
+      "name": "meta.predicate.nsm",
+      "patterns": [
+        {
+          "include": "#subject"
+        },
+        {
+          "include": "#primePredicatePhraseObject"
+        }
+      ]
+    },
+    "subject": {
+      "match": "^(SubstantivePrime)",
+      "name": "meta.subject.nsm",
+      "patterns": [
+        {
+          "include": "#substantivePrime"
+        }
+      ]
+    },
+    "complexClause": {
+      "patterns": [
+        {
+          "include": "#ifClause"
+        },
+        {
+          "include": "#quasiRelativeClause"
+        },
+        {
+          "include": "#adverbialClause"
+        },
+        {
+          "include": "#analogyClause"
+        }
+      ]
+    },
+    "ifClause": {
+      "match": "^(IF Expression THEN Expression)",
+      "name": "meta.clause.if.nsm",
+      "patterns": [
+        {
+          "include": "#expression"
+        }
+      ]
+    },
+    "quasiRelativeClause": {
+      "match": "^(SubstantivePrime WHERE Expression)",
+      "name": "meta.clause.quasiRelative.nsm",
+      "patterns": [
+        {
+          "include": "#expression"
+        },
+        {
+          "include": "#substantivePrime"
+        }
+      ]
+    },
+    "adverbialClause": {
+      "match": "^(WHEN|BECAUSE Expression)",
+      "name": "meta.clause.adverbial.nsm",
+      "patterns": [
+        {
+          "include": "#expression"
+        }
+      ]
+    },
+    "analogyClause": {
+      "match": "^(Expression LIKE Expression AS Expression)",
+      "name": "meta.clause.analogy.nsm",
+      "patterns": [
+        {
+          "include": "#expression"
+        }
+      ]
+    },
+    "primePredicatePhraseObject": {
+      "match": "^(SubstantivePrime | RelationalSubstantivePrime | DeterminerPhrase | QuantifierPhrase | EvaluatorPhrase | DescriptorPhrase | MentalPredicatePrime | SpeechPredicatePrime | ActionEventMovementPredicatePrime | ExistencePossessionPredicatePrime | LifeDeathPredicatePrime | TimePredicatePrime | SpacePredicatePrime | LogicalConceptPrime | IntensifierAugmentorPrime | SimilarityPrime | Molecule)",
+      "name": "meta.predicate.object.nsm",
+      "patterns": [
+        {
+          "include": "#substantivePrime"
+        },
+        {
+          "include": "#relationalSubstantivePrime"
+        },
+        {
+          "include": "#determinerPhrase"
+        },
+        {
+          "include": "#quantifierPhrase"
+        },
+        {
+          "include": "#evaluatorPhrase"
+        },
+        {
+          "include": "#descriptorPhrase"
+        },
+        {
+          "include": "#mentalPredicatePrime"
+        },
+        {
+          "include": "#speechPredicatePrime"
+        },
+        {
+          "include": "#actionEventMovementPredicatePrime"
+        },
+        {
+          "include": "#existencePossessionPredicatePrime"
+        },
+        {
+          "include": "#lifeDeathPredicatePrime"
+        },
+        {
+          "include": "#timePredicatePrime"
+        },
+        {
+          "include": "#spacePredicatePrime"
+        },
+        {
+          "include": "#logicalConceptPrime"
+        },
+        {
+          "include": "#intensifierAugmentorPrime"
+        },
+        {
+          "include": "#similarityPrime"
+        },
+        {
+          "include": "#molecule"
+        }
+      ]
+    },
+    "determinerPhrase": {
+      "match": "^(DeterminerPrime SubstantivePrime)",
+      "name": "meta.phrase.determiner.nsm",
+      "patterns": [
+        {
+          "include": "#determinerPrime"
+        },
+        {
+          "include": "#substantivePrime"
+        }
+      ]
+    },
+    "quantifierPhrase": {
+      "match": "^(QuantifierPrime SubstantivePrime)",
+      "name": "meta.phrase.quantifier.nsm",
+      "patterns": [
+        {
+          "include": "#quantifierPrime"
+        },
+        {
+          "include": "#substantivePrime"
+        }
+      ]
+    },
+    "evaluatorPhrase": {
+      "match": "^(EvaluatorPrime SubstantivePrime)",
+      "name": "meta.phrase.evaluator.nsm",
+      "patterns": [
+        {
+          "include": "#evaluatorPrime"
+        },
+        {
+          "include": "#substantivePrime"
+        }
+      ]
+    },
+    "descriptorPhrase": {
+      "match": "^(DescriptorPrime SubstantivePrime)",
+      "name": "meta.phrase.descriptor.nsm",
+      "patterns": [
+        {
+          "include": "#descriptorPrime"
+        },
+        {
+          "include": "#substantivePrime"
+        }
+      ]
+    },
+    "substantivePrime": {
+      "match": "^(I|YOU|SOMEONE|PEOPLE|SOMETHING|THING|BODY)",
+      "name": "constant.language.substantive-prime.nsm"
+    },
+    "relationalSubstantivePrime": {
+      "match": "^(KIND|PART)",
+      "name": "constant.language.relational-substantive-prime.nsm"
+    },
+    "determinerPrime": {
+      "match": "^(THIS|THE_SAME|OTHER|ELSE|ANOTHER)",
+      "name": "constant.language.determiner-prime.nsm"
+    },
+    "quantifierPrime": {
+      "match": "^(ONE|TWO|SOME|ALL|MUCH|MANY|LITTLE|FEW)",
+      "name": "constant.language.quantifier-prime.nsm"
+    },
+    "evaluatorPrime": {
+      "match": "^(GOOD|BAD)",
+      "name": "constant.language.evaluator-prime.nsm"
+    },
+    "descriptorPrime": {
+      "match": "^(BIG|SMALL)",
+      "name": "constant.language.descriptor-prime.nsm"
+    },
+    "mentalPredicatePrime": {
+      "match": "^(THINK|KNOW|WANT|DON'T_WANT|FEEL|SEE|HEAR)",
+      "name": "constant.language.mental-predicate-prime.nsm"
+    },
+    "speechPredicatePrime": {
+      "match": "^(SAY|WORDS|TRUE)",
+      "name": "constant.language.speech-predicate-prime.nsm"
+    },
+    "actionEventMovementPredicatePrime": {
+      "match": "^(DO|HAPPEN|MOVE)",
+      "name": "constant.language.action-event-movement-predicate-prime.nsm"
+    },
+    "existencePossessionPredicatePrime": {
+      "match": "^(BE|THERE_IS|BE_SOMEONE|BE_SOMETHING|IS_MINE)",
+      "name": "constant.language.existence-possession-predicate-prime.nsm"
+    },
+    "lifeDeathPredicatePrime": {
+      "match": "^(LIVE|DIE)",
+      "name": "constant.language.life-death-predicate-prime.nsm"
+    },
+    "timePredicatePrime": {
+      "match": "^(WHEN|TIME|NOW|BEFORE|AFTER|A_LONG_TIME|A_SHORT_TIME|FOR_SOME_TIME|MOMENT)",
+      "name": "constant.language.time-predicate-prime.nsm"
+    },
+    "spacePredicatePrime": {
+      "match": "^(WHERE|PLACE|HERE|ABOVE|BELOW|FAR|NEAR|SIDE|INSIDE|TOUCH)",
+      "name": "constant.language.space-predicate-prime.nsm"
+    },
+    "logicalConceptPrime": {
+      "match": "^(NOT|MAYBE|CAN|BECAUSE|IF)",
+      "name": "constant.language.logical-concept-prime.nsm"
+    },
+    "intensifierAugmentorPrime": {
+      "match": "^(VERY|MORE)",
+      "name": "constant.language.intensifier-augmentor-prime.nsm"
+    },
+    "similarityPrime": {
+      "match": "^(LIKE|AS|WAY)",
+      "name": "constant.language.similarity-prime.nsm"
+    },
+    "question": {
+      "match": "^(Question_Word SimpleClause)",
+      "name": "meta.question.nsm",
+      "patterns": [
+        {
+          "include": "#question_Word"
+        },
+        {
+          "include": "#simpleClause"
+        }
+      ]
+    },
+    "question_Word": {
+      "match": "^(WHERE|HOW|WHY|WHAT)",
+      "name": "constant.language.question-word.nsm"
+    },
+    "negation": {
+      "match": "^(NOT (SubstantivePrime|Molecule))",
+      "name": "meta.negation.nsm",
+      "patterns": [
+        {
+          "include": "#substantivePrime"
+        },
+        {
+          "include": "#molecule"
+        }
+      ]
+    },
+    "molecule": {
+      "match": "^(SubstantivePrime|Auxiliary_Word {SubstantivePrime | Auxiliary_Word})",
+      "name": "meta.molecule.nsm",
+      "patterns": [
+        {
+          "include": "#substantivePrime"
+        },
+        {
+          "include": "#auxiliary_Word"
+        }
+      ]
+    },
+    "auxiliary_Word": {
+      "match": "^(AND)",
+      "name": "constant.language.auxiliary-word.nsm"
+    }
+  }
+}

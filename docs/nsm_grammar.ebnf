@@ -1,11 +1,11 @@
-/* 
+/*
 File: src/grammars/nsm_grammar.ebnf
 Natural Semantic Metalanguage (NSM) Grammar
 ------------------------------------------
 This EBNF grammar represents the structure of NSM, a theoretical approach to
 language that aims to capture the universal features of human languages using a
 set of semantic primes. The grammar includes simple clauses, complex clauses,
-questions, negations, and molecules. 
+questions, negations, and molecules.
 */
 
 Expression ::= SimpleClause | ComplexClause | Question | Negation | Molecule
