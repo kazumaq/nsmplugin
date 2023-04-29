@@ -1,0 +1,32 @@
+{
+  "fileTypes": ["nsm"],
+  "name": "NSM",
+  "patterns": [
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#strings"
+    }
+  ],
+  "repository": {
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.nsm",
+          "match": "\\b(if|else)\\b"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.nsm",
+          "begin": "\"",
+          "end": "\""
+        }
+      ]
+    }
+  },
+  "scopeName": "source.nsm"
+}
