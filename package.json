@@ -1,8 +1,8 @@
 {
   "name": "nsmplugin",
-  "displayName": "nsmplugin",
-  "description": "",
-  "version": "0.0.1",
+  "displayName": "NSM Language Support",
+  "description": "Syntax highlighting and language support for Natural Semantic Metalanguage (NSM)",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.77.0"
   },
@@ -16,6 +16,27 @@
       {
         "command": "nsmplugin.helloWorld",
         "title": "Hello World"
+      }
+    ],
+    "languages": [
+      {
+        "id": "nsm",
+        "aliases": [
+          "Natural Semantic Metalanguage",
+          "NSM",
+          "nsm"
+        ],
+        "extensions": [
+          ".nsm"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "nsm",
+        "scopeName": "source.nsm",
+        "path": "./syntaxes/nsm.tmLanguage.json"
       }
     ]
   },
