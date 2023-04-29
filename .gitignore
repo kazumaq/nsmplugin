@@ -24,9 +24,6 @@ dist/
 .env
 .venv
 
-# Ignore VSCode user-specific settings
-.vscode/
-
 # Ignore build output and temporary files
 node_modules/
 dist/

@@ -3,7 +3,6 @@ repos:
     rev: v4.4.0
     hooks:
       - id: check-yaml
-      - id: check-json
       - id: end-of-file-fixer
       - id: trailing-whitespace
 
@@ -16,3 +15,8 @@ repos:
     rev: v3.0.0-alpha.9-for-vscode
     hooks:
       - id: prettier
+
+  - repo: https://gitlab.com/bmares/check-json5
+    rev: v1.0.0
+    hooks:
+      - id: check-json5
