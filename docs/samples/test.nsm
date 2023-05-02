@@ -1,0 +1,165 @@
+/* This is a test file that checks that syntax highlighting is working as expected
+This is also a
+multiline
+comment
+*/
+
+# this is a one-liner comment
+
+# Now we have some sentences using NSM prime words,
+# most of them are molecules and the text should
+# be highlighted with different colors depending on the
+# category to which the prime belongs
+
+# Acceptance
+SOMETHING HAPPENED, I CAN'T CHANGE IT, I DON'T FEEL BAD ABOUT IT
+# Admiration
+I SEE SOMEONE DO SOMETHING GOOD, I THINK THEY ARE GOOD, I WANT TO BE LIKE THEM
+# Ambition
+I WANT TO DO SOMETHING BIG, I WANT OTHER PEOPLE TO KNOW ABOUT IT, I WORK HARD FOR IT
+# Anger
+X is angry = X thinks like this: someone did something very bad, I want to do something bad to this someone, I feel something very bad because I think like this
+# Annoyance
+SOMETHING IS BOTHERING ME, I DON'T LIKE IT, I WANT IT TO STOP
+# Anticipation
+I THINK SOMETHING WILL HAPPEN, I FEEL EXCITED, I WANT IT TO HAPPEN
+# Apathy
+I DON'T CARE ABOUT SOMETHING, I DON'T FEEL ANYTHING ABOUT IT
+# Arrogance
+I THINK I AM BETTER THAN OTHER PEOPLE, I WANT OTHER PEOPLE TO KNOW IT
+# Beauty
+I SEE SOMETHING, I FEEL SOMETHING VERY GOOD WHEN I LOOK AT IT
+# Betrayal
+I DID SOMETHING BAD TO SOMEONE WHO TRUSTED ME
+# Boredom
+I DON'T WANT TO DO THIS, I DON'T WANT TO THINK ABOUT THIS, I WANT TO DO SOMETHING ELSE
+# Compassion
+I SEE SOMEONE FEELING BAD, I WANT TO HELP THEM, I FEEL BAD BECAUSE THEY FEEL BAD
+# Confidence
+I KNOW I CAN DO SOMETHING, I DON'T FEEL FEAR
+# Contentment
+I HAVE WHAT I WANT, I DON'T WANT MORE, I FEEL GOOD
+# Courage
+I FEEL FEAR, BUT I DO SOMETHING ANYWAY
+# Cowardice
+I FEEL FEAR, I DON'T DO SOMETHING BECAUSE OF IT
+# Curiosity
+I DON'T KNOW SOMETHING, I WANT TO KNOW IT, I THINK ABOUT IT, I ASK QUESTIONS
+# Danger
+SOMETHING CAN HAPPEN, SOMETHING VERY BAD
+# Denial
+SOMETHING HAPPENED, I DON'T WANT TO BELIEVE IT, I THINK IT'S NOT TRUE
+# Despair
+I WANT SOMETHING GOOD TO HAPPEN, I THINK IT CAN'T HAPPEN
+# Disapproval
+I SEE SOMEONE DO SOMETHING BAD, I THINK THEY ARE BAD, I DON'T WANT TO BE LIKE THEM
+# Disgust
+X feels disgust = X thinks like this: something is very bad, I don't want to be near this something, I feel something very bad because I think like this
+# Embarrassment
+X feels embarrassment = X thinks like this: I did something bad, other people can know that I did this, I don't want other people to know that I did this, I feel something bad because of this
+# Empathy
+I CAN FEEL WHAT SOMEONE ELSE FEELS, I CAN UNDERSTAND THEM
+# Envy
+SOMEONE HAS SOMETHING I WANT, I DON'T HAVE IT, I FEEL BAD
+# Failure
+I WANTED TO DO SOMETHING, I DIDN'T DO IT
+# Fear
+X fears Y = X thinks like this: Y can do something bad to me, I don't want Y to do something bad to me, I feel something very bad because I think like this about Y
+# Forgive
+X forgives Y for Z = X feels something bad because Y did Z, now X doesn't want to feel something bad because Y did Z, X thinks like this: I want to feel something good towards Y, I don't want to feel something bad towards Y
+# Forgiveness
+SOMEONE DID SOMETHING BAD TO ME, I DON'T WANT TO FEEL BAD ABOUT IT ANYMORE
+# Freedom
+I CAN DO WHAT I WANT, NO ONE CAN STOP ME
+# Friend
+X is Y's friend = X is someone, Y is someone, X wants to do good things for Y, X thinks about Y like this: it is good when I do good things for Y, Y thinks about X like this: it is good when X does good things for me
+# Generosity
+I HAVE SOMETHING, I GIVE IT TO SOMEONE, I DON'T WANT SOMETHING FROM THEM
+# Good
+X is good = people think like this: if someone does X, it is good
+# Gratefulness
+SOMEONE DID SOMETHING GOOD FOR ME, I WANT TO SAY THANK YOU, I FEEL GOOD ABOUT THEM
+# Gratitude
+X feels gratitude to Y = X thinks like this: Y did something very good for me, I want to do something very good for Y, I feel something good because I think like this
+# Greed
+I WANT MORE THINGS, I DON'T WANT OTHER PEOPLE TO HAVE THEM
+# Guilt
+X feels guilt = X thinks like this: I did something very bad, I don't want other people to know that I did this, I feel something very bad because of this
+# Happiness
+when someone feels something very good, and this person thinks like this: it is good that I feel like this
+# Health
+MY BODY IS NOT BAD, I CAN DO THINGS
+# Home
+WHERE I LIVE, WHERE I FEEL SAFE
+# Hope
+I WANT SOMETHING GOOD TO HAPPEN, I THINK IT CAN HAPPEN
+# Humility
+I DON'T THINK I AM BETTER THAN OTHER PEOPLE, I DON'T WANT TO MAKE OTHER PEOPLE FEEL BAD
+# Hunger
+I WANT TO EAT
+# Impatience
+I WANT SOMETHING NOW, I DON'T WANT TO WAIT
+# Indifference
+I DON'T CARE ABOUT SOMETHING, IT DOESN'T MATTER TO ME
+# Irony
+SOMETHING HAPPENED, IT'S THE OPPOSITE OF WHAT I THOUGHT WOULD HAPPEN, I THINK IT'S FUNNY OR STRANGE
+# Jealousy
+X is jealous of Y = X thinks like this: Y has something very good, I don't have something like this, I want to have something like this, I feel something very bad because I think like this
+# Knowledge
+I KNOW SOMETHING
+# Laziness
+I DON'T WANT TO DO ANYTHING, I WANT TO DO NOTHING, I DON'T WANT TO THINK ABOUT ANYTHING
+# Lonely
+X is lonely = X is somewhere, there is no one with X, X wants to be with someone, X feels something bad because X is not with someone
+# Love
+X loves Y = X thinks like this: I want good things to happen to Y, I want to do good things for Y, I want to be near Y, I want Y to feel something good, I feel something very good when I think about Y, I feel something very bad when I think about something bad happening to Y
+# Loyalty
+I WANT TO BE WITH SOMEONE, I WANT TO DO THINGS FOR THEM, I DON'T WANT TO DO THINGS AGAINST THEM
+# Mother
+X is someone's mother = X is a woman, there is someone, Y, X is Y's parent, Y is not an adult
+# Nostalgia
+I THINK ABOUT A TIME BEFORE NOW, I FEEL GOOD WHEN I THINK ABOUT IT, I WANT TO BE THERE AGAIN
+# Pain
+I FEEL SOMETHING VERY BAD IN A PART OF MY BODY
+# Patience
+I WAIT FOR SOMETHING, I DON'T FEEL BAD WHILE I WAIT
+# Pity
+I THINK SOMETHING BAD HAPPENED TO SOMEONE, I WISH IT DIDN'T HAPPEN
+# Power
+I CAN MAKE OTHER PEOPLE DO WHAT I WANT
+# Promise
+X promises Y to do Z = X says something like this to Y: I will do Z, I know that you want me to do Z, I say this because I want you to think like this: X will do Z because X said this
+# Proud
+X is proud of Y = X thinks like this: Y did something very good, because of this, people can think something very good about me, I feel something very good because of this
+# Regret
+I DID SOMETHING BAD, I FEEL BAD ABOUT IT, I WANT TO CHANGE WHAT I DID
+# Remorse
+I DID SOMETHING BAD, I FEEL VERY BAD ABOUT IT, I WANT TO SAY SORRY
+# Respect
+X respects Y = X thinks like this about Y: Y is someone who has done many good things, or Y is someone who can do many good things, I want to show Y that I think like this about Y
+# Revenge
+SOMEONE DID SOMETHING BAD TO ME, I WANT TO DO SOMETHING BAD TO THEM
+# Sadness
+X is sad = X thinks like this: something bad happened, I feel something bad because of this
+# Sarcasm
+I SAY SOMETHING, BUT I MEAN THE OPPOSITE, I WANT OTHER PEOPLE TO KNOW I'M NOT SERIOUS
+# Shame
+X feels shame = X thinks like this: I did something very bad, other people can know that I did this, I don't want other people to know that I did this, I feel something very bad because of this
+# Sleep
+I WANT TO CLOSE MY EYES AND NOT DO ANYTHING FOR SOME TIME
+# Strength
+I CAN DO THINGS THAT ARE HARD TO DO
+# Success
+I WANTED TO DO SOMETHING, I DID IT
+# Surprise
+I DIDN'T THINK SOMETHING LIKE THIS WOULD HAPPEN
+# Sympathy
+I FEEL BAD BECAUSE SOMEONE ELSE FEELS BAD
+# Thirst
+I WANT TO DRINK
+# Trust
+X trusts Y = X thinks like this about Y: Y will not do bad things to me, Y will do good things for me, I feel something good because I think like this about Y
+# Wealth
+I HAVE MANY THINGS, I CAN GET MORE THINGS
+# Wisdom
+I KNOW MANY THINGS, I CAN THINK ABOUT THINGS IN A GOOD WAY
