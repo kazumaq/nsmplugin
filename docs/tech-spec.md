@@ -54,6 +54,21 @@ Define the vocabulary, including NSM primes and auxiliary words
 
 Auxiliary words: AND, OR, NOT, IF, OF, THAT, BY, MORE, LESS, THAN, CAN, MUST, SHOULD, SO
 
+These categories are consolidated on fewer categories for sake of simplifying the syntax highlighting:
+
+| Consolidated Category                     | Primes                                                                                                                                                     |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Substantives and Relationships            | I, YOU, SOMEONE, PEOPLE, SOMETHING/THING, BODY, KIND, PART                                                                                                 |
+| Determiners and Quantifiers               | THIS, THE SAME, OTHER/ELSE/ANOTHER, ONE, TWO, SOME, ALL, MUCH/MANY, LITTLE/FEW                                                                             |
+| Evaluators, Descriptors, and Intensifiers | GOOD, BAD, BIG, SMALL, VERY, MORE                                                                                                                          |
+| Mental predicates, Speech, and Actions    | THINK, KNOW, WANT, DON'T WANT, FEEL, SEE, HEAR, SAY, WORDS, TRUE, DO, HAPPEN, MOVE                                                                         |
+| Existence, Possession, and Life and Death | BE (SOMEWHERE), THERE IS, BE (SOMEONE/SOMETHING), (IS) MINE, LIVE, DIE                                                                                     |
+| Time and Space                            | WHEN/TIME, NOW, BEFORE, AFTER, A LONG TIME, A SHORT TIME, FOR SOME TIME, MOMENT, WHERE/PLACE, HERE, ABOVE, BELOW, FAR, NEAR, SIDE, INSIDE, TOUCH (CONTACT) |
+| Logical Concepts                          | NOT, MAYBE, CAN, BECAUSE, IF                                                                                                                               |
+| Similarity                                | LIKE/AS/WAY                                                                                                                                                |
+
+Auxiliary words: AND, OR, NOT, IF, OF, THAT, BY, MORE, LESS, THAN, CAN, MUST, SHOULD, SO
+
 ### Define the Formal grammar
 
 Specify how the words can be combined in the NSM syntax.
