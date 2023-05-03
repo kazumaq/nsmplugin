@@ -46,7 +46,7 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/src/test/runTest.js"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
@@ -60,6 +60,9 @@
     "glob": "^8.1.0",
     "mocha": "^10.2.0",
     "typescript": "^5.0.4",
-    "vscode-tmgrammar-test": "^0.1.1"
+    "vscode-textmate": "^9.0.0"
+  },
+  "dependencies": {
+    "onigasm": "^2.2.5"
   }
 }
