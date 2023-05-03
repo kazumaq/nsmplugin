@@ -1,4 +1,5 @@
 import * as assert from "assert";
+import * as fs from "fs";
 
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
@@ -20,7 +21,11 @@ import { loadWASM, OnigScanner, OnigString } from "onigasm";
 
 // Load onigasm WASM binary and create onigLib
 async function loadOnigLib(): Promise<IOnigLib> {
-  await loadWASM(require("onigasm/lib/onigasm.wasm"));
+  const wasmPath = require.resolve("onigasm/lib/onigasm.wasm");
+  const wasmBinary = fs.readFileSync(wasmPath);
+  const wasmBuffer = new Uint8Array(wasmBinary).buffer;
+
+  await loadWASM(wasmBuffer);
   return {
     createOnigScanner: (sources) => new OnigScanner(sources),
     createOnigString: (str) => new OnigString(str),
@@ -36,7 +41,7 @@ suite("NSM Grammar", () => {
         if (scopeName === "source.nsm") {
           const grammarPath = path.join(
             __dirname,
-            "../../../..",
+            "../../..",
             "syntaxes",
             "nsm.tmLanguage.json",
           );
@@ -50,7 +55,7 @@ suite("NSM Grammar", () => {
     // Load the grammar
     const grammarPath = path.join(
       __dirname,
-      "../../../..",
+      "../../..",
       "syntaxes",
       "nsm.tmLanguage.json",
     );
@@ -65,10 +70,41 @@ suite("NSM Grammar", () => {
 
     // Expected tokenization
     const expectedTokens = [
-      { startIndex: 0, type: "entity.name.type" }, // I
-      { startIndex: 1, type: "support.function" }, // WANT
-      { startIndex: 6, type: "variable.parameter" }, // THIS
-      { startIndex: 11, type: "entity.name.type" }, // THING
+      {
+        startIndex: 0,
+        endIndex: 1,
+        scopes: ["source.nsm", "entity.name.type"],
+      },
+      {
+        startIndex: 1,
+        endIndex: 2,
+        scopes: ["source.nsm"],
+      },
+      {
+        startIndex: 2,
+        endIndex: 6,
+        scopes: ["source.nsm", "support.function"],
+      },
+      {
+        startIndex: 6,
+        endIndex: 7,
+        scopes: ["source.nsm"],
+      },
+      {
+        startIndex: 7,
+        endIndex: 11,
+        scopes: ["source.nsm", "variable.parameter"],
+      },
+      {
+        startIndex: 11,
+        endIndex: 12,
+        scopes: ["source.nsm"],
+      },
+      {
+        startIndex: 12,
+        endIndex: 17,
+        scopes: ["source.nsm", "entity.name.type"],
+      },
     ];
 
     // Tokenize the sample code
