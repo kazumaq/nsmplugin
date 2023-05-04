@@ -60,6 +60,10 @@
     "glob": "^8.1.0",
     "mocha": "^10.2.0",
     "typescript": "^5.0.4",
-    "vscode-tmgrammar-test": "^0.1.1"
+    "vscode-textmate": "^9.0.0"
+  },
+  "dependencies": {
+    "onigasm": "^2.2.5",
+    "onigasm-umd": "^2.2.5"
   }
 }
