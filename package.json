@@ -3,13 +3,21 @@
   "displayName": "NSM Language Support",
   "description": "Syntax highlighting and language support for Natural Semantic Metalanguage (NSM)",
   "version": "0.0.2",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kazumaq/nsmplugin.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kazumaq/nsmplugin/issues"
+  },
+  "homepage": "https://github.com/kazumaq/nsmplugin#readme",
   "engines": {
-    "vscode": "^1.77.0"
+    "vscode": "^1.78.0"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -46,13 +54,14 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/test/runTest.js",
+    "prettier": "prettier --write ."
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
     "@types/mocha": "^10.0.1",
     "@types/node": "^16.18.25",
-    "@types/vscode": "^1.77.0",
+    "@types/vscode": "^1.78.0",
     "@typescript-eslint/eslint-plugin": "^5.59.1",
     "@typescript-eslint/parser": "^5.59.1",
     "@vscode/test-electron": "^2.3.0",
@@ -63,7 +72,6 @@
     "vscode-textmate": "^9.0.0"
   },
   "dependencies": {
-    "onigasm": "^2.2.5",
-    "onigasm-umd": "^2.2.5"
+    "onigasm": "^2.2.5"
   }
 }
