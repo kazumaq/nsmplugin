@@ -10,3 +10,7 @@ rm -rf out
 # Remove the 'node_modules' directory and its contents
 # This directory contains all the dependencies installed by npm or yarn
 rm -rf node_modules
+
+rm package-lock.json
+
+rm -rf .vscode-test
