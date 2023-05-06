@@ -16,5 +16,16 @@
   "devDependencies": {
     "@types/vscode": "^1.78.0",
     "@vscode/test-electron": "^2.3.0"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/kazumaq/nsmplugin/issues"
+  },
+  "homepage": "https://github.com/kazumaq/nsmplugin#readme",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": ""
 }

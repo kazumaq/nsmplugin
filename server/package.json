@@ -3,16 +3,22 @@
   "description": "NSMPlugin server part of a language server",
   "version": "0.0.2",
   "license": "MIT",
-  "engines": {
-    "node": "*"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/kazumaq/nsmplugin.git"
+  },
+  "engines": {
+    "node": "*"
   },
   "dependencies": {
     "vscode-languageserver": "^8.1.0",
     "vscode-languageserver-textdocument": "^1.0.8"
   },
-  "scripts": {}
+  "scripts": {},
+  "bugs": {
+    "url": "https://github.com/kazumaq/nsmplugin/issues"
+  },
+  "homepage": "https://github.com/kazumaq/nsmplugin#readme",
+  "devDependencies": {},
+  "author": ""
 }

@@ -36,10 +36,21 @@
         ],
         "extensions": [
           ".nsm"
-        ],
-        "configuration": "./language-configuration.json"
+        ]
       }
     ],
+    "configuration": {
+      "type": "object",
+      "title": "Example configuration",
+      "properties": {
+        "languageServerExample.maxNumberOfProblems": {
+          "scope": "resource",
+          "type": "number",
+          "default": 100,
+          "description": "Controls the maximum number of problems produced by the server."
+        }
+      }
+    },
     "grammars": [
       {
         "language": "nsm",
@@ -73,5 +84,10 @@
   },
   "dependencies": {
     "onigasm": "^2.2.5"
-  }
+  },
+  "private": true,
+  "workspaces": [
+    "nsmplugin-server",
+    "nsmplugin-client"
+  ]
 }
