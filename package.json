@@ -87,7 +87,7 @@
   },
   "private": true,
   "workspaces": [
-    "nsmplugin-server",
-    "nsmplugin-client"
+    "server",
+    "client"
   ]
 }

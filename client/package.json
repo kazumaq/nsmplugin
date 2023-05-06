@@ -1,5 +1,5 @@
 {
-  "name": "nsmplugin-client",
+  "name": "client",
   "description": "NSMPlugin client part of a language server",
   "version": "0.0.2",
   "license": "MIT",

@@ -1,5 +1,5 @@
 {
-  "name": "nsmplugin-server",
+  "name": "server",
   "description": "NSMPlugin server part of a language server",
   "version": "0.0.2",
   "license": "MIT",
@@ -19,6 +19,5 @@
     "url": "https://github.com/kazumaq/nsmplugin/issues"
   },
   "homepage": "https://github.com/kazumaq/nsmplugin#readme",
-  "devDependencies": {},
   "author": ""
 }
