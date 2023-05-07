@@ -1,0 +1,31 @@
+{
+  "name": "client",
+  "description": "NSMPlugin client part of a language server",
+  "version": "0.0.2",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kazumaq/nsmplugin.git"
+  },
+  "engines": {
+    "vscode": "^1.78.0"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^8.1.0"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.78.0",
+    "@vscode/test-electron": "^2.3.0"
+  },
+  "bugs": {
+    "url": "https://github.com/kazumaq/nsmplugin/issues"
+  },
+  "homepage": "https://github.com/kazumaq/nsmplugin#readme",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": ""
+}
