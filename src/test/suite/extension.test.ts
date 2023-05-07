@@ -51,7 +51,7 @@ async function loadOnigLib(): Promise<IOnigLib> {
 const SCOPE_NSM = 'source.nsm';
 const GRAMMAR_PATH = path.join(
   __dirname,
-  '../../..',
+  '../../../..',
   'syntaxes',
   'nsm.tmLanguage.json'
 );

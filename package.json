@@ -18,7 +18,7 @@
   "categories": [
     "Other"
   ],
-  "main": "./out/extension.js",
+  "main": "./out/src/extension.js",
   "contributes": {
     "commands": [
       {
@@ -41,13 +41,23 @@
     ],
     "configuration": {
       "type": "object",
-      "title": "Example configuration",
+      "title": "Client configuration",
       "properties": {
-        "languageServerExample.maxNumberOfProblems": {
+        "nsmLanguageServer.maxNumberOfProblems": {
           "scope": "resource",
           "type": "number",
           "default": 100,
           "description": "Controls the maximum number of problems produced by the server."
+        },
+        "nsmLanguageServer.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Traces the communication between VSCode and the nsmLanguageServer service."
         }
       }
     },
@@ -65,7 +75,7 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js",
+    "test": "node ./out/src/test/runTest.js",
     "prettier": "prettier --write ."
   },
   "devDependencies": {
@@ -89,5 +99,9 @@
   "workspaces": [
     "server",
     "client"
+  ],
+  "nsmLanguageServer.trace.server": "verbose",
+  "activationEvents": [
+    "onLanguage:nsm"
   ]
 }
