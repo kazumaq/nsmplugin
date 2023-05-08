@@ -36,7 +36,8 @@
         ],
         "extensions": [
           ".nsm"
-        ]
+        ],
+        "configuration": "./language-configuration.json"
       }
     ],
     "configuration": {
