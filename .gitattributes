@@ -1,0 +1,8 @@
+* text=auto
+
+# Define the line endings for specific file types
+*.sh eol=lf
+
+# Define the diff behavior for certain files
+*.jpg binary
+*.png binary
