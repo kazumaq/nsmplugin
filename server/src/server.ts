@@ -15,7 +15,28 @@ import {
   InitializeResult, // Interface for the result of the `initialize` request
 } from 'vscode-languageserver/node';
 
+import { IGrammar, Registry, StateStack } from 'vscode-textmate';
+
 import { TextDocument } from 'vscode-languageserver-textdocument';
+
+import {
+  createRegistryInstance,
+  loadGrammar,
+} from '../../shared/grammar-utils';
+
+let registry: Registry; // Registry object from vscode-textmate, responsible for managing and loading grammars
+let grammar: IGrammar; // IGrammar interface from vscode-textmate, used to tokenize text
+
+async function initializeGrammar(): Promise<void> {
+  // Create a new Registry instance with the onigLib and loadGrammar callback
+  registry = createRegistryInstance();
+
+  // Load the grammar
+  grammar = await loadGrammar(registry);
+}
+
+// Immediately call the loadGrammar function
+initializeGrammar();
 
 // =============================================================================
 // Connection setup
@@ -69,7 +90,9 @@ connection.onInitialize((params: InitializeParams) => {
     },
   };
 
-  // If the client supports workspace folders, include that in the server's capabilities.
+  // Check if client supports workspace folders (root folders in a workspace).
+  // Including this improves multi-root handling in VSCode.
+  // More info: https://code.visualstudio.com/docs/editor/multi-root-workspaces
   if (hasWorkspaceFolderCapability) {
     result.capabilities.workspace = {
       workspaceFolders: {
@@ -83,6 +106,23 @@ connection.onInitialize((params: InitializeParams) => {
 // =============================================================================
 // Server event listeners
 // =============================================================================
+// Server event listeners are functions that react to various events occurring
+// during the server's lifecycle. They help in handling different client-server
+// interactions like initialization, changes in workspace or documents, etc.
+//
+// Some common event types are:
+// 1. onInitialize: Triggers when the server initializes.
+// 2. onInitialized: Triggers after the server initializes.
+// 3. onDidChangeConfiguration: Triggers when client configuration changes.
+// 4. onDidChangeWorkspaceFolders: Triggers when workspace folders change.
+// 5. onDidChangeContent: Triggers when the content of a text document changes.
+// 6. onCompletion: Triggers when a completion is requested by the client.
+// 7. onCompletionResolve: Triggers when additional info is requested for a completion item.
+//
+// More events can be found in the LSP Specification:
+// https://microsoft.github.io/language-server-protocol/specifications/specification-current/#_event_types
+//
+// Remember to register listeners to handle desired events and provide custom functionality.
 
 // The 'onInitialized' event is triggered after the server is initialized.
 // We use it to register for configuration changes and workspace folder changes, if supported.
@@ -236,6 +276,74 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 
   // Send the diagnostics to the client (VSCode).
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+}
+
+// This function validates a text document and sends diagnostics to the client (VSCode).
+// It checks for all-uppercase words with a length of 2 or more and reports them as warnings.
+async function validateTextDocument2(
+  textDocument: TextDocument
+): Promise<void> {
+  // Get the document settings for each validation run.
+  const settings = await getDocumentSettings(textDocument.uri);
+
+  // Tokenize the text document using the TextMate grammar
+  const lines = textDocument.getText().split(/\r?\n/g);
+  let ruleStack: StateStack | null = null;
+  const diagnostics: Diagnostic[] = [];
+  let problems = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const result = grammar.tokenizeLine(line, ruleStack);
+    ruleStack = result.ruleStack;
+
+    // Iterate through the tokens and validate them
+    for (const token of result.tokens) {
+      const tokenText = line.substring(token.startIndex, token.endIndex);
+      const tokenScopes = token.scopes;
+
+      // Validate the token based on its scope(s)
+      if (isValidToken(tokenScopes)) {
+        // Token is valid, do nothing
+      } else {
+        // Token is invalid, create a diagnostic
+        if (problems < settings.maxNumberOfProblems) {
+          problems++;
+          const diagnostic: Diagnostic = {
+            severity: DiagnosticSeverity.Warning,
+            range: {
+              start: { line: i, character: token.startIndex },
+              end: { line: i, character: token.endIndex },
+            },
+            message: `Invalid token: ${tokenText}`,
+            source: 'ex',
+          };
+          diagnostics.push(diagnostic);
+        }
+      }
+    }
+  }
+
+  // Send the diagnostics to the client (VSCode).
+  connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+}
+
+// Define the function isValidToken that checks if the token scope(s) match the allowed scopes
+function isValidToken(scopes: string[]): boolean {
+  // Define the allowed token scopes based on your TextMate grammar
+  const allowedScopes = [
+    'source.nsm',
+    // Add more allowed scopes as needed
+  ];
+
+  // Check if any of the token scopes match the allowed scopes
+  for (const scope of scopes) {
+    if (allowedScopes.includes(scope)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 // =============================================================================

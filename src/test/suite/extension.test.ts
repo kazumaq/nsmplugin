@@ -16,45 +16,15 @@ when tokenizing a code snippet with an expected set of tokens.
 */
 
 import * as assert from 'assert';
-import * as fs from 'fs';
-import * as path from 'path';
 import * as vscode from 'vscode';
-import {
-  IGrammar,
-  Registry,
-  INITIAL,
-  IRawGrammar,
-  IOnigLib,
-} from 'vscode-textmate';
+import { IGrammar, Registry, INITIAL } from 'vscode-textmate';
 // More about vscode-textmate: https://github.com/microsoft/vscode-textmate
 
-import { loadWASM, OnigScanner, OnigString } from 'onigasm';
-
-// onigasm is a WebAssembly port of the Oniguruma regular expression library.
-// It is used for tokenizing text based on TextMate grammars.
-// More about Oniguruma: https://github.com/kkos/oniguruma
-// More about onigasm: https://github.com/NeekSandhu/onigasm
-
-// Load onigasm WASM binary and create onigLib
-async function loadOnigLib(): Promise<IOnigLib> {
-  const wasmPath = require.resolve('onigasm/lib/onigasm.wasm');
-  const wasmBinary = fs.readFileSync(wasmPath);
-  const wasmBuffer = new Uint8Array(wasmBinary).buffer;
-
-  await loadWASM(wasmBuffer);
-  return {
-    createOnigScanner: (sources) => new OnigScanner(sources),
-    createOnigString: (str) => new OnigString(str),
-  };
-}
-
-const SCOPE_NSM = 'source.nsm';
-const GRAMMAR_PATH = path.join(
-  __dirname,
-  '../../../..',
-  'syntaxes',
-  'nsm.tmLanguage.json'
-);
+import {
+  createRegistryInstance,
+  SCOPE_NSM,
+  loadGrammar,
+} from '../../../shared/grammar-utils';
 
 // Define a test suite for the extension
 // Test suites help organize test cases for different aspects of the extension
@@ -77,23 +47,11 @@ suite('NSM Grammar', () => {
   // Setup code to be executed before running any test in the suite
   // This code initializes the Registry and loads the grammar for testing
   suiteSetup(async () => {
-    const onigLibPromise = loadOnigLib();
-
     // Create a new Registry instance with the onigLib and loadGrammar callback
-    registry = new Registry({
-      onigLib: onigLibPromise,
-      loadGrammar: async (scopeName: string) => {
-        if (scopeName === SCOPE_NSM) {
-          const grammarContent = require(GRAMMAR_PATH);
-          return grammarContent as IRawGrammar; // IRawGrammar is an interface representing the raw grammar in JSON format
-        }
-        return null;
-      },
-    });
+    registry = createRegistryInstance();
 
     // Load the grammar
-    const grammarContent = require(GRAMMAR_PATH);
-    grammar = await registry.addGrammar(grammarContent as IRawGrammar);
+    grammar = await loadGrammar(registry);
   });
 
   // Function to test tokenization of a given code snippet
