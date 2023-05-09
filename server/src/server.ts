@@ -107,17 +107,17 @@ connection.onInitialized(() => {
 // Server settings
 // =============================================================================
 
-// The example settings structure
-interface ExampleSettings {
+// The NSM server settings structure
+interface NSMServerSettings {
   maxNumberOfProblems: number;
 }
 
 // The global settings, used when the `workspace/configuration` request is not supported by the client.
-const defaultSettings: ExampleSettings = { maxNumberOfProblems: 1000 };
-let globalSettings: ExampleSettings = defaultSettings;
+const defaultSettings: NSMServerSettings = { maxNumberOfProblems: 1000 };
+let globalSettings: NSMServerSettings = defaultSettings;
 
 // Cache the settings of all open documents
-const documentSettings: Map<string, Thenable<ExampleSettings>> = new Map();
+const documentSettings: Map<string, Thenable<NSMServerSettings>> = new Map();
 
 // Listen for configuration changes
 connection.onDidChangeConfiguration((change) => {
@@ -125,8 +125,8 @@ connection.onDidChangeConfiguration((change) => {
     // Reset all cached document settings
     documentSettings.clear();
   } else {
-    globalSettings = <ExampleSettings>(
-      (change.settings.languageServerExample || defaultSettings)
+    globalSettings = <NSMServerSettings>(
+      (change.settings.languageServerNSMServer || defaultSettings)
     );
   }
 
@@ -138,7 +138,7 @@ connection.onDidChangeConfiguration((change) => {
 // This function retrieves the settings for a specific document (identified by its URI)
 // and returns a Promise that resolves to an object containing those settings.
 // If the client doesn't have configuration capability, it will return the global settings.
-function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
+function getDocumentSettings(resource: string): Thenable<NSMServerSettings> {
   // Check if the client has configuration capability
   // (i.e., if it can handle workspace/configuration requests).
   // If not, return a Promise that resolves to the global settings.
@@ -257,7 +257,7 @@ connection.onDidChangeWatchedFiles((_change) => {
 connection.onCompletion(
   (_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
     // The pass parameter contains the position of the text document in
-    // which code complete got requested. For the example we ignore this
+    // which code complete got requested. For the NSM server we ignore this
     // info and always provide the same completion items.
     return [
       {
