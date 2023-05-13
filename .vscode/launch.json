@@ -26,31 +26,13 @@
         "--extensionDevelopmentPath=${workspaceFolder}",
         "--extensionTestsPath=${workspaceFolder}/out/src/test/suite/index"
       ],
-      "outFiles": ["${workspaceFolder}/out/**/*.js"],
+      "outFiles": ["${workspaceFolder}/out/src/test/**/*.js"],
       "preLaunchTask": "${defaultBuildTask}",
       "presentation": {
         "group": "extension",
         "label": "Extension Tests"
       },
       "sourceMaps": true
-    },
-    {
-      "name": "Launch Server",
-      "type": "node",
-      "request": "launch",
-      "cwd": "${workspaceFolder}",
-      "runtimeExecutable": "node",
-      "runtimeArgs": ["--nolazy", "--inspect=6009"],
-      "program": "${workspaceFolder}/out/server/src/server.js",
-      "args": ["--stdio"],
-      "sourceMaps": true,
-      "trace": true
-    }
-  ],
-  "compounds": [
-    {
-      "name": "Run Extension and Launch Server",
-      "configurations": ["Run Extension", "Launch Server"]
     }
   ]
 }
