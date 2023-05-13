@@ -19,5 +19,8 @@
     "url": "https://github.com/kazumaq/nsmplugin/issues"
   },
   "homepage": "https://github.com/kazumaq/nsmplugin#readme",
-  "author": ""
+  "author": "",
+  "devDependencies": {
+    "@types/strip-comments": "^2.0.1"
+  }
 }

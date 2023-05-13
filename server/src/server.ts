@@ -16,6 +16,96 @@ import {
 } from 'vscode-languageserver/node';
 
 import { IGrammar, Registry, StateStack } from 'vscode-textmate';
+import * as fs from 'fs';
+
+const grammarWords = new Set([
+  'I',
+  'YOU',
+  'SOMEONE',
+  'PEOPLE',
+  'SOMETHING',
+  'THING',
+  'BODY',
+  'KIND',
+  'PART',
+  'THIS',
+  'THE SAME',
+  'OTHER',
+  'ELSE',
+  'ANOTHER',
+  'ONE',
+  'TWO',
+  'SOME',
+  'ALL',
+  'MUCH',
+  'MANY',
+  'LITTLE',
+  'FEW',
+  'GOOD',
+  'BAD',
+  'BIG',
+  'SMALL',
+  'VERY',
+  'MORE',
+  'THINK',
+  'KNOW',
+  'WANT',
+  "DON'T WANT",
+  'FEEL',
+  'SEE',
+  'HEAR',
+  'SAY',
+  'WORDS',
+  'TRUE',
+  'DO',
+  'HAPPEN',
+  'MOVE',
+  'BE',
+  'THERE IS',
+  'BE',
+  'MINE',
+  'LIVE',
+  'DIE',
+  'WHEN',
+  'NOW',
+  'BEFORE',
+  'AFTER',
+  'A LONG TIME',
+  'A SHORT TIME',
+  'FOR SOME TIME',
+  'MOMENT',
+  'WHERE',
+  'HERE',
+  'ABOVE',
+  'BELOW',
+  'FAR',
+  'NEAR',
+  'SIDE',
+  'INSIDE',
+  'TOUCH',
+  'NOT',
+  'MAYBE',
+  'CAN',
+  'BECAUSE',
+  'IF',
+  'LIKE',
+  'AS',
+  'WAY',
+  'AND',
+  'OR',
+  'NOT',
+  'IF',
+  'OF',
+  'THAT',
+  'BY',
+  'MORE',
+  'LESS',
+  'THAN',
+  'CAN',
+  'MUST',
+  'SHOULD',
+  'SO',
+]);
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
@@ -226,52 +316,68 @@ documents.onDidChangeContent((change) => {
   validateTextDocument(change.document);
 });
 
-// This function validates a text document and sends diagnostics to the client (VSCode).
-// It checks for all-uppercase words with a length of 2 or more and reports them as warnings.
+// Utility function for writing debug messages to a file
+function writeDebugMessageToFile(message: string): void {
+  const filePath = '/Users/leonverdin/src/nsmplugin/file.txt';
+  fs.appendFile(filePath, message + '\n', (err) => {
+    if (err) {
+      console.error(`Error writing debug message to file: ${err}`);
+    }
+  });
+}
+
+function replaceCommentsWithWhitespace(text: string): string {
+  const blockCommentPattern = /\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm;
+  const lineCommentPattern = /#.*/g;
+  const doubleQuotedStringPattern = /"([^"\\]*(\\.[^"\\]*)*)"/g;
+
+  const pattern = new RegExp(
+    `(?:${blockCommentPattern.source})|(?:${lineCommentPattern.source})|(?:${doubleQuotedStringPattern.source})`,
+    'g'
+  );
+
+  let result = text.replace(pattern, (match: string) => {
+    // Write matched string to debug file
+    writeDebugMessageToFile(`Matched: ${match}`);
+
+    const replaced = match.replace(/[^\r\n]/g, ' ');
+
+    // Write replaced string to debug file
+    writeDebugMessageToFile(`Replaced: ${replaced}`);
+
+    return replaced;
+  });
+
+  return result;
+}
+
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   // Get the document settings for each validation run.
   const settings = await getDocumentSettings(textDocument.uri);
 
   // Extract the text from the document and define a regex pattern for all-uppercase words length 2 and more
   const text = textDocument.getText();
-  const pattern = /\b[A-Z]{2,}\b/g;
-  let m: RegExpExecArray | null;
+  const strippedText = replaceCommentsWithWhitespace(text);
 
-  // Iterate through the matches, create diagnostics, and send them to the client.
-  let problems = 0;
+  const pattern = /\b\w+\b/g;
+
   const diagnostics: Diagnostic[] = [];
-  while ((m = pattern.exec(text)) && problems < settings.maxNumberOfProblems) {
-    problems++;
-    const diagnostic: Diagnostic = {
-      severity: DiagnosticSeverity.Warning,
-      range: {
-        start: textDocument.positionAt(m.index),
-        end: textDocument.positionAt(m.index + m[0].length),
-      },
-      message: `${m[0]} is all uppercase.`,
-      source: 'ex',
-    };
+  let match: RegExpExecArray | null;
 
-    // If the client supports related diagnostic information, add it to the diagnostic.
-    if (hasDiagnosticRelatedInformationCapability) {
-      diagnostic.relatedInformation = [
-        {
-          location: {
-            uri: textDocument.uri,
-            range: Object.assign({}, diagnostic.range),
-          },
-          message: 'Spelling matters',
+  while ((match = pattern.exec(strippedText))) {
+    const word = match[0];
+    if (!grammarWords.has(word)) {
+      const diagnostic: Diagnostic = {
+        severity: DiagnosticSeverity.Warning,
+        range: {
+          start: textDocument.positionAt(match.index),
+          end: textDocument.positionAt(match.index + word.length),
         },
-        {
-          location: {
-            uri: textDocument.uri,
-            range: Object.assign({}, diagnostic.range),
-          },
-          message: 'Particularly for names',
-        },
-      ];
+        message: `${word} is not a valid NSM keyword.`,
+        source: 'nsm',
+      };
+      diagnostics.push(diagnostic);
     }
-    diagnostics.push(diagnostic);
   }
 
   // Send the diagnostics to the client (VSCode).
@@ -367,32 +473,19 @@ connection.onCompletion(
     // The pass parameter contains the position of the text document in
     // which code complete got requested. For the NSM server we ignore this
     // info and always provide the same completion items.
-    return [
-      {
-        label: 'TypeScript',
-        kind: CompletionItemKind.Text,
-        data: 1,
-      },
-      {
-        label: 'JavaScript',
-        kind: CompletionItemKind.Text,
-        data: 2,
-      },
-    ];
+    return Array.from(grammarWords).map((word, index) => ({
+      label: word,
+      kind: CompletionItemKind.Text,
+      data: index,
+    }));
   }
 );
 
 // This handler resolves additional information for the item selected in
 // the completion list.
 connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
-  // Add detail and documentation based on the item's data property.
-  if (item.data === 1) {
-    item.detail = 'TypeScript details';
-    item.documentation = 'TypeScript documentation';
-  } else if (item.data === 2) {
-    item.detail = 'JavaScript details';
-    item.documentation = 'JavaScript documentation';
-  }
+  // Provide additional information for the completion items if necessary
+  item.detail = `${item.label} keyword from the NSM grammar`;
   return item;
 });
 
