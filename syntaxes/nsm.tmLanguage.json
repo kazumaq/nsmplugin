@@ -3,50 +3,24 @@
   "fileTypes": ["nsm"],
   "name": "Natural Semantic Metalanguage",
   "patterns": [
+    { "include": "#nsm-elements" },
     {
-      "match": "\\b(I|YOU|SOMEONE|PEOPLE|SOMETHING|THING|BODY|KIND|PART)\\b",
-      "name": "entity.name.type",
-      "comment": "Match substantives and relational substantives"
-    },
-    {
-      "match": "\\b(THIS|THE SAME|OTHER|ELSE|ANOTHER|ONE|TWO|SOME|ALL|MUCH|MANY|LITTLE|FEW)\\b",
-      "name": "variable.parameter",
-      "comment": "Match determiners and quantifiers"
-    },
-    {
-      "match": "\\b(GOOD|BAD|BIG|SMALL|VERY|MORE)\\b",
-      "name": "support.constant",
-      "comment": "Match evaluators, descriptors, and intensifiers"
-    },
-    {
-      "match": "\\b(THINK|KNOW|WANT|DON'T WANT|FEEL|SEE|HEAR|SAY|WORDS|TRUE|DO|HAPPEN|MOVE)\\b",
-      "name": "support.function",
-      "comment": "Match mental predicates, speech, and actions"
-    },
-    {
-      "match": "\\b(BE|THERE IS|BE|MINE|LIVE|DIE)\\b",
-      "name": "constant.language",
-      "comment": "Match existence, possession, and life and death primes"
-    },
-    {
-      "match": "\\b(WHEN|NOW|BEFORE|AFTER|A LONG TIME|A SHORT TIME|FOR SOME TIME|MOMENT|WHERE|HERE|ABOVE|BELOW|FAR|NEAR|SIDE|INSIDE|TOUCH)\\b",
-      "name": "string.unquoted",
-      "comment": "Match time and space primes"
-    },
-    {
-      "match": "\\b(NOT|MAYBE|CAN|BECAUSE|IF)\\b",
-      "name": "keyword.control",
-      "comment": "Match logical concepts"
-    },
-    {
-      "match": "\\b(LIKE|AS|WAY)\\b",
-      "name": "variable.language",
-      "comment": "Match similarity primes"
-    },
-    {
-      "match": "\\b(AND|OR|NOT|IF|OF|THAT|BY|MORE|LESS|THAN|CAN|MUST|SHOULD|SO)\\b",
-      "name": "variable.other",
-      "comment": "Match auxiliary words"
+      "begin": "\"\"\"",
+      "end": "\"\"\"",
+      "name": "comment.block",
+      "patterns": [
+        {
+          "match": "^\"\"\"*([a-z]+)",
+          "name": "entity.name.type",
+          "captures": {
+            "1": {
+              "name": "entity.name.type"
+            }
+          }
+        },
+        { "include": "#nsm-elements" }
+      ],
+      "comment": "Match molecule definitions"
     },
     {
       "begin": "/\\*",
@@ -72,5 +46,56 @@
       ]
     }
   ],
+  "repository": {
+    "nsm-elements": {
+      "patterns": [
+        {
+          "match": "\\b(I|YOU|SOMEONE|PEOPLE|SOMETHING|THING|BODY|KIND|PART)\\b",
+          "name": "entity.name.type",
+          "comment": "Match substantives and relational substantives"
+        },
+        {
+          "match": "\\b(THIS|THE SAME|OTHER|ELSE|ANOTHER|ONE|TWO|SOME|ALL|MUCH|MANY|LITTLE|FEW)\\b",
+          "name": "variable.parameter",
+          "comment": "Match determiners and quantifiers"
+        },
+        {
+          "match": "\\b(GOOD|BAD|BIG|SMALL|VERY|MORE)\\b",
+          "name": "support.constant",
+          "comment": "Match evaluators, descriptors, and intensifiers"
+        },
+        {
+          "match": "\\b(THINK|KNOW|WANT|DON'T WANT|FEEL|SEE|HEAR|SAY|WORDS|TRUE|DO|HAPPEN|MOVE)\\b",
+          "name": "support.function",
+          "comment": "Match mental predicates, speech, and actions"
+        },
+        {
+          "match": "\\b(BE|THERE IS|BE|MINE|LIVE|DIE)\\b",
+          "name": "constant.language",
+          "comment": "Match existence, possession, and life and death primes"
+        },
+        {
+          "match": "\\b(WHEN|NOW|BEFORE|AFTER|A LONG TIME|A SHORT TIME|FOR SOME TIME|MOMENT|WHERE|HERE|ABOVE|BELOW|FAR|NEAR|SIDE|INSIDE|TOUCH)\\b",
+          "name": "string.unquoted",
+          "comment": "Match time and space primes"
+        },
+        {
+          "match": "\\b(NOT|MAYBE|CAN|BECAUSE|IF)\\b",
+          "name": "keyword.control",
+          "comment": "Match logical concepts"
+        },
+        {
+          "match": "\b(LIKE|AS|WAY)\b",
+          "name": "variable.language",
+          "comment": "Match similarity primes"
+        },
+        {
+          "match": "\b(AND|OR|NOT|IF|OF|THAT|BY|MORE|LESS|THAN|CAN|MUST|SHOULD|SO)\b",
+          "name": "variable.other",
+          "comment": "Match auxiliary words"
+        }
+      ]
+    }
+  },
   "uuid": "D26322D7-F625-46C1-94E0-F3299F1B653C"
 }
