@@ -81,6 +81,7 @@
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
+    "@types/lodash": "^4.14.194",
     "@types/mocha": "^10.0.1",
     "@types/node": "^16.18.25",
     "@types/vscode": "^1.78.0",
@@ -94,6 +95,7 @@
     "vscode-textmate": "^9.0.0"
   },
   "dependencies": {
+    "lodash": "^4.17.21",
     "onigasm": "^2.2.5"
   },
   "private": true,

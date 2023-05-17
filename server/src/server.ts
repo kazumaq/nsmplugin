@@ -17,6 +17,8 @@ import {
 
 import { IGrammar, Registry, StateStack } from 'vscode-textmate';
 import * as fs from 'fs';
+import * as path from 'path';
+import { debounce } from 'lodash';
 
 const grammarWords = new Set([
   'A LONG TIME',
@@ -103,6 +105,23 @@ const grammarWords = new Set([
   'YOU',
 ]);
 
+const pathToGrammar = path.join(
+  __dirname,
+  '..',
+  '..',
+  '..',
+  'syntaxes',
+  'nsm.tmLanguage.json'
+);
+const pathToCustomMolecules = path.join(
+  __dirname,
+  '..',
+  '..',
+  '..',
+  'shared',
+  'customMolecules.json'
+);
+
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
 import {
@@ -112,6 +131,45 @@ import {
 
 let registry: Registry; // Registry object from vscode-textmate, responsible for managing and loading grammars
 let grammar: IGrammar; // IGrammar interface from vscode-textmate, used to tokenize text
+
+async function initializeGrammarWithCustomMolecules(): Promise<void> {
+  let customMolecules = await loadCustomMolecules();
+  await updateGrammarWithCustomMolecules(customMolecules);
+}
+
+async function loadCustomMolecules(): Promise<Set<string>> {
+  if (!fs.existsSync(pathToCustomMolecules)) {
+    return new Set();
+  }
+  const customMoleculesData = await fs.promises.readFile(
+    pathToCustomMolecules,
+    'utf8'
+  );
+  const customMoleculesJson = JSON.parse(customMoleculesData);
+  return new Set(customMoleculesJson.customMolecules);
+}
+
+// Create a function to update customWords.json with the new custom words
+async function saveCustomMolecules(
+  customMolecules: Set<string>
+): Promise<void> {
+  const jsonString = JSON.stringify(Array.from(customMolecules));
+  await fs.promises.writeFile(pathToCustomMolecules, jsonString, 'utf-8');
+}
+
+async function updateGrammarWithCustomMolecules(
+  customMolecules: Set<string>
+): Promise<void> {
+  const grammarContent = await fs.promises.readFile(pathToGrammar, 'utf8');
+  const updatedContent = grammarContent.replace(
+    /"CUSTOM_WORDS_PLACEHOLDER"/,
+    Array.from(customMolecules)
+      .map((word) => `\\b(${word})\\b`)
+      .join('|')
+  );
+  await fs.promises.writeFile(pathToGrammar, updatedContent, 'utf8');
+  grammar = await loadGrammar(registry);
+}
 
 async function initializeGrammar(): Promise<void> {
   // Create a new Registry instance with the onigLib and loadGrammar callback
@@ -123,6 +181,7 @@ async function initializeGrammar(): Promise<void> {
 
 // Immediately call the loadGrammar function
 initializeGrammar();
+initializeGrammarWithCustomMolecules();
 
 // =============================================================================
 // Connection setup
@@ -309,8 +368,55 @@ documents.onDidClose((e) => {
 // This event is emitted when the text document is first opened or when its content has changed.
 // It triggers the 'validateTextDocument' function to validate the content of the document.
 documents.onDidChangeContent((change) => {
-  validateTextDocument(change.document);
+  debounce(async (change) => {
+    await updateCustomMolecules(change.document);
+    validateTextDocument(change.document);
+  }, 300);
 });
+
+async function updateCustomMolecules(document: TextDocument): Promise<void> {
+  // Extract the molecules from the document
+  const newMolecules = extractMolecules(document.getText());
+
+  // Load the existing custom words from customWords.json
+  const customWords = await loadCustomMolecules();
+
+  // Check if there are any changes in the molecules
+  if (!areSetsEqual(newMolecules, customWords)) {
+    // Save the updated custom words to customWords.json
+    await saveCustomMolecules(newMolecules);
+
+    // Update the grammar with the new custom words
+    updateGrammarWithCustomMolecules(newMolecules);
+  }
+}
+
+// Create a function to extract molecules from the document
+function extractMolecules(text: string): Set<string> {
+  const moleculePattern = /(?:molecule\s+)(\w+)/g;
+  const molecules = new Set<string>();
+  let match;
+
+  while ((match = moleculePattern.exec(text)) !== null) {
+    molecules.add(match[1]);
+  }
+
+  return molecules;
+}
+
+function areSetsEqual<T>(setA: Set<T>, setB: Set<T>): boolean {
+  if (setA.size !== setB.size) {
+    return false;
+  }
+
+  for (const item of setA) {
+    if (!setB.has(item)) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 // Utility function for writing debug messages to a file
 function writeDebugMessageToFile(message: string): void {
@@ -489,5 +595,7 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
 // for open, change and close text document events
 documents.listen(connection);
 
-// Listen on the connection
-connection.listen();
+initializeGrammarWithCustomMolecules().then(() => {
+  // Listen on the connection
+  connection.listen();
+});
