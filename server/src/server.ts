@@ -15,7 +15,7 @@ import {
   InitializeResult, // Interface for the result of the `initialize` request
 } from 'vscode-languageserver/node';
 
-import { IGrammar, Registry, StateStack } from 'vscode-textmate';
+import { IGrammar, Registry } from 'vscode-textmate';
 import * as fs from 'fs';
 import * as path from 'path';
 import { debounce } from 'lodash';
@@ -104,6 +104,7 @@ const grammarWords = new Set([
   'WORD',
   'YOU',
 ]);
+let customMolecules = new Set<string>();
 
 const pathToGrammar = path.join(
   __dirname,
@@ -139,43 +140,31 @@ import {
 let registry: Registry; // Registry object from vscode-textmate, responsible for managing and loading grammars
 let grammar: IGrammar; // IGrammar interface from vscode-textmate, used to tokenize text
 
-async function initializeGrammarWithCustomMolecules(): Promise<void> {
-  let customMolecules = await loadCustomMolecules();
-  await updateGrammarWithCustomMolecules(customMolecules);
-}
-
 async function loadCustomMolecules(): Promise<Set<string>> {
-  if (!fs.existsSync(pathToCustomMolecules)) {
+  try {
+    if (!fs.existsSync(pathToCustomMolecules)) {
+      return new Set();
+    }
+    const customMoleculesData = await fs.promises.readFile(
+      pathToCustomMolecules,
+      'utf8'
+    );
+    const customMoleculesJson = JSON.parse(customMoleculesData);
+    customMolecules = new Set(customMoleculesJson.customMolecules);
+    return customMolecules;
+  } catch (err) {
+    console.error(`Error loading custom molecules: ${err}`);
     return new Set();
   }
-  const customMoleculesData = await fs.promises.readFile(
-    pathToCustomMolecules,
-    'utf8'
-  );
-  const customMoleculesJson = JSON.parse(customMoleculesData);
-  return new Set(customMoleculesJson.customMolecules);
 }
 
 // Create a function to update customWords.json with the new custom words
 async function saveCustomMolecules(
   customMolecules: Set<string>
 ): Promise<void> {
+  customMolecules = new Set(customMolecules);
   const jsonString = JSON.stringify(Array.from(customMolecules));
   await fs.promises.writeFile(pathToCustomMolecules, jsonString, 'utf-8');
-}
-
-async function updateGrammarWithCustomMolecules(
-  customMolecules: Set<string>
-): Promise<void> {
-  const grammarContent = await fs.promises.readFile(pathToGrammar, 'utf8');
-  const updatedContent = grammarContent.replace(
-    /"CUSTOM_WORDS_PLACEHOLDER"/,
-    Array.from(customMolecules)
-      .map((word) => `\\b(${word})\\b`)
-      .join('|')
-  );
-  await fs.promises.writeFile(pathToGrammar, updatedContent, 'utf8');
-  grammar = await loadGrammar(registry);
 }
 
 async function initializeGrammar(): Promise<void> {
@@ -188,7 +177,6 @@ async function initializeGrammar(): Promise<void> {
 
 // Immediately call the loadGrammar function
 initializeGrammar();
-initializeGrammarWithCustomMolecules();
 
 // =============================================================================
 // Connection setup
@@ -396,9 +384,7 @@ async function updateCustomMolecules(document: TextDocument): Promise<void> {
     console.log('Changes detected in custom molecules');
     // Save the updated custom words to customWords.json
     await saveCustomMolecules(newMolecules);
-
-    // Update the grammar with the new custom words
-    updateGrammarWithCustomMolecules(newMolecules);
+    console.log('Custom molecules updated');
   } else {
     console.log('No changes in custom molecules');
   }
@@ -521,7 +507,11 @@ connection.onCompletion(
     // The pass parameter contains the position of the text document in
     // which code complete got requested. For the NSM server we ignore this
     // info and always provide the same completion items.
-    return Array.from(grammarWords).map((word, index) => ({
+    const allWords = new Set([
+      ...Array.from(grammarWords),
+      ...Array.from(customMolecules),
+    ]);
+    return Array.from(allWords).map((word, index) => ({
       label: word,
       kind: CompletionItemKind.Text,
       data: index,
@@ -541,7 +531,5 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
 // for open, change and close text document events
 documents.listen(connection);
 
-initializeGrammarWithCustomMolecules().then(() => {
-  // Listen on the connection
-  connection.listen();
-});
+// Listen on the connection
+connection.listen();

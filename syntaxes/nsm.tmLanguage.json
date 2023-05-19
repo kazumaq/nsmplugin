@@ -44,10 +44,6 @@
           "name": "constant.character.escape"
         }
       ]
-    },
-    {
-      "match": "\\b(CUSTOM_WORDS_PLACEHOLDER)\\b",
-      "name": "keyword.control"
     }
   ],
   "repository": {
