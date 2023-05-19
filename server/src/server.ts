@@ -121,6 +121,13 @@ const pathToCustomMolecules = path.join(
   'shared',
   'customMolecules.json'
 );
+const pathToAuxiliaryDebugFile = path.join(
+  __dirname,
+  '..',
+  '..',
+  '..',
+  'file.txt'
+);
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
@@ -364,17 +371,20 @@ documents.onDidClose((e) => {
 // =============================================================================
 // Document validation
 // =============================================================================
+const debouncedUpdateAndValidate = debounce(async (document: TextDocument) => {
+  await updateCustomMolecules(document);
+  validateTextDocument(document);
+}, 300);
 
 // This event is emitted when the text document is first opened or when its content has changed.
 // It triggers the 'validateTextDocument' function to validate the content of the document.
 documents.onDidChangeContent((change) => {
-  debounce(async (change) => {
-    await updateCustomMolecules(change.document);
-    validateTextDocument(change.document);
-  }, 300);
+  console.log('onDidChangeContent triggered');
+  debouncedUpdateAndValidate(change.document);
 });
 
 async function updateCustomMolecules(document: TextDocument): Promise<void> {
+  console.log('in updateCustomMolecules()');
   // Extract the molecules from the document
   const newMolecules = extractMolecules(document.getText());
 
@@ -383,17 +393,22 @@ async function updateCustomMolecules(document: TextDocument): Promise<void> {
 
   // Check if there are any changes in the molecules
   if (!areSetsEqual(newMolecules, customWords)) {
+    console.log('Changes detected in custom molecules');
     // Save the updated custom words to customWords.json
     await saveCustomMolecules(newMolecules);
 
     // Update the grammar with the new custom words
     updateGrammarWithCustomMolecules(newMolecules);
+  } else {
+    console.log('No changes in custom molecules');
   }
 }
 
 // Create a function to extract molecules from the document
 function extractMolecules(text: string): Set<string> {
-  const moleculePattern = /(?:molecule\s+)(\w+)/g;
+  console.log('in extractMolecules()');
+  const moleculePattern =
+    /\"\"\"[ \t]*([a-zA-Z0-9_]+)[ \t]*\n+([a-zA-Z0-9_\n ]+)\n\"\"\"/g;
   const molecules = new Set<string>();
   let match;
 
@@ -420,8 +435,7 @@ function areSetsEqual<T>(setA: Set<T>, setB: Set<T>): boolean {
 
 // Utility function for writing debug messages to a file
 function writeDebugMessageToFile(message: string): void {
-  const filePath = '/Users/leonverdin/src/nsmplugin/file.txt';
-  fs.appendFile(filePath, message + '\n', (err) => {
+  fs.appendFile(pathToAuxiliaryDebugFile, message + '\n', (err) => {
     if (err) {
       console.error(`Error writing debug message to file: ${err}`);
     }
@@ -484,74 +498,6 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 
   // Send the diagnostics to the client (VSCode).
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
-}
-
-// This function validates a text document and sends diagnostics to the client (VSCode).
-// It checks for all-uppercase words with a length of 2 or more and reports them as warnings.
-async function validateTextDocument2(
-  textDocument: TextDocument
-): Promise<void> {
-  // Get the document settings for each validation run.
-  const settings = await getDocumentSettings(textDocument.uri);
-
-  // Tokenize the text document using the TextMate grammar
-  const lines = textDocument.getText().split(/\r?\n/g);
-  let ruleStack: StateStack | null = null;
-  const diagnostics: Diagnostic[] = [];
-  let problems = 0;
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const result = grammar.tokenizeLine(line, ruleStack);
-    ruleStack = result.ruleStack;
-
-    // Iterate through the tokens and validate them
-    for (const token of result.tokens) {
-      const tokenText = line.substring(token.startIndex, token.endIndex);
-      const tokenScopes = token.scopes;
-
-      // Validate the token based on its scope(s)
-      if (isValidToken(tokenScopes)) {
-        // Token is valid, do nothing
-      } else {
-        // Token is invalid, create a diagnostic
-        if (problems < settings.maxNumberOfProblems) {
-          problems++;
-          const diagnostic: Diagnostic = {
-            severity: DiagnosticSeverity.Warning,
-            range: {
-              start: { line: i, character: token.startIndex },
-              end: { line: i, character: token.endIndex },
-            },
-            message: `Invalid token: ${tokenText}`,
-            source: 'ex',
-          };
-          diagnostics.push(diagnostic);
-        }
-      }
-    }
-  }
-
-  // Send the diagnostics to the client (VSCode).
-  connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
-}
-
-// Define the function isValidToken that checks if the token scope(s) match the allowed scopes
-function isValidToken(scopes: string[]): boolean {
-  // Define the allowed token scopes based on your TextMate grammar
-  const allowedScopes = [
-    'source.nsm',
-    // Add more allowed scopes as needed
-  ];
-
-  // Check if any of the token scopes match the allowed scopes
-  for (const scope of scopes) {
-    if (allowedScopes.includes(scope)) {
-      return true;
-    }
-  }
-
-  return false;
 }
 
 // =============================================================================
