@@ -132,11 +132,14 @@ let registry: Registry; // Registry object from vscode-textmate, responsible for
 let grammar: IGrammar; // IGrammar interface from vscode-textmate, used to tokenize text
 
 async function initializeGrammar(): Promise<void> {
-  // Create a new Registry instance with the onigLib and loadGrammar callback
-  registry = createRegistryInstance();
-
-  // Load the grammar
-  grammar = await loadGrammar(registry);
+  try {
+    // Create a new Registry instance with the onigLib and loadGrammar callback
+    registry = createRegistryInstance();
+    // Load the grammar
+    grammar = await loadGrammar(registry);
+  } catch (err) {
+    console.error('Error loading grammar:', err);
+  }
 }
 
 // Immediately call the loadGrammar function
@@ -269,24 +272,29 @@ connection.onDidChangeConfiguration((change) => {
 
 // Get document settings
 function getDocumentSettings(resource: string): Thenable<NSMServerSettings> {
-  if (!hasConfigurationCapability) {
-    return Promise.resolve(globalSettings);
+  try {
+    if (!hasConfigurationCapability) {
+      return Promise.resolve(globalSettings);
+    }
+
+    // Try to get the document settings from the documentSettings Map.
+    let result = documentSettings.get(resource);
+
+    if (!result) {
+      result = connection.workspace.getConfiguration({
+        scopeUri: resource,
+        section: CONFIG_SECTION_NAME,
+      });
+
+      documentSettings.set(resource, result);
+    }
+
+    // Return the Promise that resolves to the document settings.
+    return result;
+  } catch (err) {
+    console.error('Error getting document settings:', err);
+    return Promise.resolve(defaultSettings); // Fall back to default settings on error
   }
-
-  // Try to get the document settings from the documentSettings Map.
-  let result = documentSettings.get(resource);
-
-  if (!result) {
-    result = connection.workspace.getConfiguration({
-      scopeUri: resource,
-      section: CONFIG_SECTION_NAME,
-    });
-
-    documentSettings.set(resource, result);
-  }
-
-  // Return the Promise that resolves to the document settings.
-  return result;
 }
 
 // Only keep settings for open documents
@@ -317,7 +325,6 @@ async function updateCustomMolecules(document: TextDocument): Promise<void> {
   );
 }
 
-//
 function getMatchedMolecules(text: string): string[] {
   const molecules = [];
   let match;
@@ -370,29 +377,33 @@ const createDiagnostic = (
 };
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
-  console.log('in validateTextDocument()');
-  // Get the document settings for each validation run.
-  const settings = await getDocumentSettings(textDocument.uri);
+  try {
+    console.log('in validateTextDocument()');
+    // Get the document settings for each validation run.
+    const settings = await getDocumentSettings(textDocument.uri);
 
-  // Extract the text from the document and define a regex pattern for all-uppercase words length 2 and more
-  const text = textDocument.getText();
-  const strippedText = replaceCommentsWithWhitespace(text);
+    // Extract the text from the document and define a regex pattern for all-uppercase words length 2 and more
+    const text = textDocument.getText();
+    const strippedText = replaceCommentsWithWhitespace(text);
 
-  const pattern = /\b\w+\b/g;
+    const pattern = /\b\w+\b/g;
 
-  const diagnostics: Diagnostic[] = [];
-  let match: RegExpExecArray | null;
+    const diagnostics: Diagnostic[] = [];
+    let match: RegExpExecArray | null;
 
-  while ((match = pattern.exec(strippedText))) {
-    const word = match[0];
-    if (!grammarWords.has(word) && !customMolecules.has(word)) {
-      const diagnostic = createDiagnostic(word, match, textDocument);
-      diagnostics.push(diagnostic);
+    while ((match = pattern.exec(strippedText))) {
+      const word = match[0];
+      if (!grammarWords.has(word) && !customMolecules.has(word)) {
+        const diagnostic = createDiagnostic(word, match, textDocument);
+        diagnostics.push(diagnostic);
+      }
     }
-  }
 
-  // Send the diagnostics to the client (VSCode).
-  connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+    // Send the diagnostics to the client (VSCode).
+    connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+  } catch (err) {
+    console.error('Error validating text document:', err);
+  }
 }
 
 // =============================================================================
