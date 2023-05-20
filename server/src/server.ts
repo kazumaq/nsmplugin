@@ -16,106 +16,25 @@ import {
 } from 'vscode-languageserver/node';
 
 import { IGrammar, Registry } from 'vscode-textmate';
-import * as fs from 'fs';
-import * as path from 'path';
 import { debounce } from 'lodash';
 
-const grammarWords = new Set([
-  'A LONG TIME',
-  'A SHORT TIME',
-  'ABOVE',
-  'AFTER',
-  'ALL',
-  'AND',
-  'ANOTHER',
-  'AS',
-  'BAD',
-  'BE',
-  'BE',
-  'BECAUSE',
-  'BEFORE',
-  'BELOW',
-  'BIG',
-  'BODY',
-  'BY',
-  'CAN',
-  'DIE',
-  'DO',
-  "DON'T WANT",
-  'ELSE',
-  'FAR',
-  'FEEL',
-  'FEW',
-  'FOR SOME TIME',
-  'GOOD',
-  'HAPPEN',
-  'HEAR',
-  'HERE',
-  'I',
-  'IF',
-  'INSIDE',
-  'KIND',
-  'KNOW',
-  'LESS',
-  'LIKE',
-  'LITTLE',
-  'LIVE',
-  'MANY',
-  'MAYBE',
-  'MINE',
-  'MOMENT',
-  'MORE',
-  'MOVE',
-  'MUCH',
-  'MUST',
-  'NEAR',
-  'NOT',
-  'NOW',
-  'OF',
-  'ONE',
-  'OR',
-  'OTHER',
-  'PART',
-  'PEOPLE',
-  'SAY',
-  'SEE',
-  'SHOULD',
-  'SIDE',
-  'SMALL',
-  'SO',
-  'SOME',
-  'SOMEONE',
-  'SOMETHING',
-  'THAN',
-  'THAT',
-  'THE SAME',
-  'THERE IS',
-  'THING',
-  'THINK',
-  'THIS',
-  'TOUCH',
-  'TRUE',
-  'TWO',
-  'VERY',
-  'WANT',
-  'WAY',
-  'WHEN',
-  'WHERE',
-  'WORD',
-  'YOU',
-]);
+import {
+  createDiagnostic,
+  hasConfigurationCapability,
+  hasWorkspaceFolderCapability,
+  replaceCommentsWithWhitespace,
+  checkClientCapabilities,
+} from './utils';
+
 let customMolecules = new Set<string>();
 
-const pathToGrammar = path.join(
-  __dirname,
-  '..',
-  '..',
-  '..',
-  'syntaxes',
-  'nsm.tmLanguage.json'
-);
-
 import { TextDocument } from 'vscode-languageserver-textdocument';
+
+import {
+  grammarWords,
+  CONFIG_SECTION_NAME,
+  MOLECULE_PATTERN,
+} from './constants';
 
 import {
   createRegistryInstance,
@@ -126,11 +45,14 @@ let registry: Registry; // Registry object from vscode-textmate, responsible for
 let grammar: IGrammar; // IGrammar interface from vscode-textmate, used to tokenize text
 
 async function initializeGrammar(): Promise<void> {
-  // Create a new Registry instance with the onigLib and loadGrammar callback
-  registry = createRegistryInstance();
-
-  // Load the grammar
-  grammar = await loadGrammar(registry);
+  try {
+    // Create a new Registry instance with the onigLib and loadGrammar callback
+    registry = createRegistryInstance();
+    // Load the grammar
+    grammar = await loadGrammar(registry);
+  } catch (err) {
+    console.error('Error loading grammar:', err);
+  }
 }
 
 // Immediately call the loadGrammar function
@@ -149,11 +71,6 @@ const connection = createConnection(ProposedFeatures.all);
 // like getting the content, listening for changes, etc.
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
-// Flags to store client capabilities
-let hasConfigurationCapability = false;
-let hasWorkspaceFolderCapability = false;
-let hasDiagnosticRelatedInformationCapability = false;
-
 // =============================================================================
 // Server initialization
 // =============================================================================
@@ -164,17 +81,7 @@ connection.onInitialize((params: InitializeParams) => {
   const capabilities = params.capabilities;
 
   // Check for client capabilities
-  hasConfigurationCapability = !!(
-    capabilities.workspace && !!capabilities.workspace.configuration
-  );
-  hasWorkspaceFolderCapability = !!(
-    capabilities.workspace && !!capabilities.workspace.workspaceFolders
-  );
-  hasDiagnosticRelatedInformationCapability = !!(
-    capabilities.textDocument &&
-    capabilities.textDocument.publishDiagnostics &&
-    capabilities.textDocument.publishDiagnostics.relatedInformation
-  );
+  checkClientCapabilities(capabilities);
 
   // Return the server's capabilities in response to the client's `initialize` request.
   const result: InitializeResult = {
@@ -257,40 +164,30 @@ connection.onDidChangeConfiguration((change) => {
 });
 
 // Get document settings
-// This function retrieves the settings for a specific document (identified by its URI)
-// and returns a Promise that resolves to an object containing those settings.
-// If the client doesn't have configuration capability, it will return the global settings.
 function getDocumentSettings(resource: string): Thenable<NSMServerSettings> {
-  // Check if the client has configuration capability
-  // (i.e., if it can handle workspace/configuration requests).
-  // If not, return a Promise that resolves to the global settings.
-  // More info on configuration capability: https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspace_configuration
-  if (!hasConfigurationCapability) {
-    return Promise.resolve(globalSettings);
+  try {
+    if (!hasConfigurationCapability) {
+      return Promise.resolve(globalSettings);
+    }
+
+    // Try to get the document settings from the documentSettings Map.
+    let result = documentSettings.get(resource);
+
+    if (!result) {
+      result = connection.workspace.getConfiguration({
+        scopeUri: resource,
+        section: CONFIG_SECTION_NAME,
+      });
+
+      documentSettings.set(resource, result);
+    }
+
+    // Return the Promise that resolves to the document settings.
+    return result;
+  } catch (err) {
+    console.error('Error getting document settings:', err);
+    return Promise.resolve(defaultSettings); // Fall back to default settings on error
   }
-
-  // Try to get the document settings from the documentSettings Map.
-  let result = documentSettings.get(resource);
-
-  // If the settings are not found in the Map, request the configuration
-  // from the client using the connection.workspace.getConfiguration method.
-  if (!result) {
-    // The getConfiguration method takes an object with two properties:
-    // scopeUri (the document URI) and section (the configuration section name).
-    // In this case, the section is 'nsmLanguageServer'.
-    // More info on getConfiguration: https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspace_getConfiguration
-    result = connection.workspace.getConfiguration({
-      scopeUri: resource,
-      section: 'nsmLanguageServer',
-    });
-
-    // Store the retrieved settings in the documentSettings Map
-    // for future use, so we don't have to request them again.
-    documentSettings.set(resource, result);
-  }
-
-  // Return the Promise that resolves to the document settings.
-  return result;
 }
 
 // Only keep settings for open documents
@@ -309,84 +206,66 @@ const debouncedUpdateAndValidate = debounce(async (document: TextDocument) => {
 // This event is emitted when the text document is first opened or when its content has changed.
 // It triggers the 'validateTextDocument' function to validate the content of the document.
 documents.onDidChangeContent((change) => {
-  console.log('onDidChangeContent triggered');
   debouncedUpdateAndValidate(change.document);
 });
 
 async function updateCustomMolecules(document: TextDocument): Promise<void> {
-  console.log('in updateCustomMolecules()');
-  // Extract the molecules from the document
-  customMolecules = extractMolecules(document.getText());
-  console.log(
-    'updateCustomMolecules(), current custom molecules: ' + [...customMolecules]
-  );
+  try {
+    console.log('in updateCustomMolecules()');
+    // Extract the molecules from the document
+    customMolecules = extractMolecules(document.getText());
+  } catch (err) {
+    console.error('Error updating custom molecules:', err);
+  }
 }
 
-// Create a function to extract molecules from the document
-function extractMolecules(text: string): Set<string> {
-  console.log('in extractMolecules()');
-  const moleculePattern =
-    /\"\"\"[ \t]*([a-zA-Z0-9_]+)[ \t]*\n+([a-zA-Z0-9_\n ]+)\n\"\"\"/g;
-  const molecules = new Set<string>();
+//
+function getMatchedMolecules(text: string): string[] {
+  const molecules = [];
   let match;
 
-  while ((match = moleculePattern.exec(text)) !== null) {
-    molecules.add(match[1]);
+  while ((match = MOLECULE_PATTERN.exec(text)) !== null) {
+    molecules.push(match[1]);
   }
 
   return molecules;
 }
 
-function replaceCommentsWithWhitespace(text: string): string {
-  const blockCommentPattern = /\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm;
-  const lineCommentPattern = /#.*/g;
-  const doubleQuotedStringPattern = /"([^"\\]*(\\.[^"\\]*)*)"/g;
-
-  const pattern = new RegExp(
-    `(?:${blockCommentPattern.source})|(?:${lineCommentPattern.source})|(?:${doubleQuotedStringPattern.source})`,
-    'g'
-  );
-
-  let result = text.replace(pattern, (match: string) => {
-    const replaced = match.replace(/[^\r\n]/g, ' ');
-    return replaced;
-  });
-
-  return result;
+// Create a function to extract molecules from the document
+function extractMolecules(text: string): Set<string> {
+  console.log('in extractMolecules()');
+  const molecules = new Set<string>(getMatchedMolecules(text));
+  return molecules;
 }
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
-  console.log('in validateTextDocument()');
-  // Get the document settings for each validation run.
-  const settings = await getDocumentSettings(textDocument.uri);
+  try {
+    console.log('in validateTextDocument()');
+    // Get the document settings for each validation run.
+    const settings = await getDocumentSettings(textDocument.uri);
 
-  // Extract the text from the document and define a regex pattern for all-uppercase words length 2 and more
-  const text = textDocument.getText();
-  const strippedText = replaceCommentsWithWhitespace(text);
+    // Extract the text from the document and define a regex pattern for all-uppercase words length 2 and more
+    const text = textDocument.getText();
+    const strippedText = replaceCommentsWithWhitespace(text);
 
-  const pattern = /\b\w+\b/g;
+    const pattern = /\b\w+\b/g;
 
-  const diagnostics: Diagnostic[] = [];
-  let match: RegExpExecArray | null;
+    const diagnostics: Diagnostic[] = [];
+    let match: RegExpExecArray | null;
 
-  while ((match = pattern.exec(strippedText))) {
-    const word = match[0];
-    if (!grammarWords.has(word) && !customMolecules.has(word)) {
-      const diagnostic: Diagnostic = {
-        severity: DiagnosticSeverity.Warning,
-        range: {
-          start: textDocument.positionAt(match.index),
-          end: textDocument.positionAt(match.index + word.length),
-        },
-        message: `${word} is not a valid NSM keyword.`,
-        source: 'nsm',
-      };
-      diagnostics.push(diagnostic);
+    while ((match = pattern.exec(strippedText))) {
+      const word = match[0];
+      if (!grammarWords.has(word) && !customMolecules.has(word)) {
+        const diagnostic = createDiagnostic(word, match, textDocument);
+        diagnostics.push(diagnostic);
+      }
     }
-  }
 
-  // Send the diagnostics to the client (VSCode).
-  connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+    // Send the diagnostics to the client (VSCode).
+    connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+  } catch (err) {
+    console.error('Error validating text document:', err);
+  }
 }
 
 // =============================================================================
