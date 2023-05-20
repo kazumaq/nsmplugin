@@ -15,97 +15,105 @@ import {
   InitializeResult, // Interface for the result of the `initialize` request
 } from 'vscode-languageserver/node';
 
-import { IGrammar, Registry, StateStack } from 'vscode-textmate';
+import { IGrammar, Registry } from 'vscode-textmate';
 import * as fs from 'fs';
+import * as path from 'path';
+import { debounce } from 'lodash';
 
 const grammarWords = new Set([
-  'I',
-  'YOU',
-  'SOMEONE',
-  'PEOPLE',
-  'SOMETHING',
-  'THING',
-  'BODY',
-  'KIND',
-  'PART',
-  'THIS',
-  'THE SAME',
-  'OTHER',
-  'ELSE',
-  'ANOTHER',
-  'ONE',
-  'TWO',
-  'SOME',
-  'ALL',
-  'MUCH',
-  'MANY',
-  'LITTLE',
-  'FEW',
-  'GOOD',
-  'BAD',
-  'BIG',
-  'SMALL',
-  'VERY',
-  'MORE',
-  'THINK',
-  'KNOW',
-  'WANT',
-  "DON'T WANT",
-  'FEEL',
-  'SEE',
-  'HEAR',
-  'SAY',
-  'WORDS',
-  'TRUE',
-  'DO',
-  'HAPPEN',
-  'MOVE',
-  'BE',
-  'THERE IS',
-  'BE',
-  'MINE',
-  'LIVE',
-  'DIE',
-  'WHEN',
-  'NOW',
-  'BEFORE',
-  'AFTER',
   'A LONG TIME',
   'A SHORT TIME',
-  'FOR SOME TIME',
-  'MOMENT',
-  'WHERE',
-  'HERE',
   'ABOVE',
-  'BELOW',
-  'FAR',
-  'NEAR',
-  'SIDE',
-  'INSIDE',
-  'TOUCH',
-  'NOT',
-  'MAYBE',
-  'CAN',
-  'BECAUSE',
-  'IF',
-  'LIKE',
-  'AS',
-  'WAY',
+  'AFTER',
+  'ALL',
   'AND',
-  'OR',
-  'NOT',
-  'IF',
-  'OF',
-  'THAT',
+  'ANOTHER',
+  'AS',
+  'BAD',
+  'BE',
+  'BE',
+  'BECAUSE',
+  'BEFORE',
+  'BELOW',
+  'BIG',
+  'BODY',
   'BY',
-  'MORE',
-  'LESS',
-  'THAN',
   'CAN',
+  'DIE',
+  'DO',
+  "DON'T WANT",
+  'ELSE',
+  'FAR',
+  'FEEL',
+  'FEW',
+  'FOR SOME TIME',
+  'GOOD',
+  'HAPPEN',
+  'HEAR',
+  'HERE',
+  'I',
+  'IF',
+  'INSIDE',
+  'KIND',
+  'KNOW',
+  'LESS',
+  'LIKE',
+  'LITTLE',
+  'LIVE',
+  'MANY',
+  'MAYBE',
+  'MINE',
+  'MOMENT',
+  'MORE',
+  'MOVE',
+  'MUCH',
   'MUST',
+  'NEAR',
+  'NOT',
+  'NOW',
+  'OF',
+  'ONE',
+  'OR',
+  'OTHER',
+  'PART',
+  'PEOPLE',
+  'SAY',
+  'SEE',
   'SHOULD',
+  'SIDE',
+  'SMALL',
   'SO',
+  'SOME',
+  'SOMEONE',
+  'SOMETHING',
+  'THAN',
+  'THAT',
+  'THE SAME',
+  'THERE IS',
+  'THING',
+  'THINK',
+  'THIS',
+  'TOUCH',
+  'TRUE',
+  'TWO',
+  'VERY',
+  'WANT',
+  'WAY',
+  'WHEN',
+  'WHERE',
+  'WORD',
+  'YOU',
 ]);
+let customMolecules = new Set<string>();
+
+const pathToGrammar = path.join(
+  __dirname,
+  '..',
+  '..',
+  '..',
+  'syntaxes',
+  'nsm.tmLanguage.json'
+);
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
@@ -196,22 +204,6 @@ connection.onInitialize((params: InitializeParams) => {
 // =============================================================================
 // Server event listeners
 // =============================================================================
-// Server event listeners are functions that react to various events occurring
-// during the server's lifecycle. They help in handling different client-server
-// interactions like initialization, changes in workspace or documents, etc.
-//
-// Some common event types are:
-// 1. onInitialize: Triggers when the server initializes.
-// 2. onInitialized: Triggers after the server initializes.
-// 3. onDidChangeConfiguration: Triggers when client configuration changes.
-// 4. onDidChangeWorkspaceFolders: Triggers when workspace folders change.
-// 5. onDidChangeContent: Triggers when the content of a text document changes.
-// 6. onCompletion: Triggers when a completion is requested by the client.
-// 7. onCompletionResolve: Triggers when additional info is requested for a completion item.
-//
-// More events can be found in the LSP Specification:
-// https://microsoft.github.io/language-server-protocol/specifications/specification-current/#_event_types
-//
 // Remember to register listeners to handle desired events and provide custom functionality.
 
 // The 'onInitialized' event is triggered after the server is initialized.
@@ -309,21 +301,40 @@ documents.onDidClose((e) => {
 // =============================================================================
 // Document validation
 // =============================================================================
+const debouncedUpdateAndValidate = debounce(async (document: TextDocument) => {
+  await updateCustomMolecules(document);
+  validateTextDocument(document);
+}, 300);
 
 // This event is emitted when the text document is first opened or when its content has changed.
 // It triggers the 'validateTextDocument' function to validate the content of the document.
 documents.onDidChangeContent((change) => {
-  validateTextDocument(change.document);
+  console.log('onDidChangeContent triggered');
+  debouncedUpdateAndValidate(change.document);
 });
 
-// Utility function for writing debug messages to a file
-function writeDebugMessageToFile(message: string): void {
-  const filePath = '/Users/leonverdin/src/nsmplugin/file.txt';
-  fs.appendFile(filePath, message + '\n', (err) => {
-    if (err) {
-      console.error(`Error writing debug message to file: ${err}`);
-    }
-  });
+async function updateCustomMolecules(document: TextDocument): Promise<void> {
+  console.log('in updateCustomMolecules()');
+  // Extract the molecules from the document
+  customMolecules = extractMolecules(document.getText());
+  console.log(
+    'updateCustomMolecules(), current custom molecules: ' + [...customMolecules]
+  );
+}
+
+// Create a function to extract molecules from the document
+function extractMolecules(text: string): Set<string> {
+  console.log('in extractMolecules()');
+  const moleculePattern =
+    /\"\"\"[ \t]*([a-zA-Z0-9_]+)[ \t]*\n+([a-zA-Z0-9_\n ]+)\n\"\"\"/g;
+  const molecules = new Set<string>();
+  let match;
+
+  while ((match = moleculePattern.exec(text)) !== null) {
+    molecules.add(match[1]);
+  }
+
+  return molecules;
 }
 
 function replaceCommentsWithWhitespace(text: string): string {
@@ -337,14 +348,7 @@ function replaceCommentsWithWhitespace(text: string): string {
   );
 
   let result = text.replace(pattern, (match: string) => {
-    // Write matched string to debug file
-    writeDebugMessageToFile(`Matched: ${match}`);
-
     const replaced = match.replace(/[^\r\n]/g, ' ');
-
-    // Write replaced string to debug file
-    writeDebugMessageToFile(`Replaced: ${replaced}`);
-
     return replaced;
   });
 
@@ -352,6 +356,7 @@ function replaceCommentsWithWhitespace(text: string): string {
 }
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
+  console.log('in validateTextDocument()');
   // Get the document settings for each validation run.
   const settings = await getDocumentSettings(textDocument.uri);
 
@@ -366,7 +371,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 
   while ((match = pattern.exec(strippedText))) {
     const word = match[0];
-    if (!grammarWords.has(word)) {
+    if (!grammarWords.has(word) && !customMolecules.has(word)) {
       const diagnostic: Diagnostic = {
         severity: DiagnosticSeverity.Warning,
         range: {
@@ -382,74 +387,6 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 
   // Send the diagnostics to the client (VSCode).
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
-}
-
-// This function validates a text document and sends diagnostics to the client (VSCode).
-// It checks for all-uppercase words with a length of 2 or more and reports them as warnings.
-async function validateTextDocument2(
-  textDocument: TextDocument
-): Promise<void> {
-  // Get the document settings for each validation run.
-  const settings = await getDocumentSettings(textDocument.uri);
-
-  // Tokenize the text document using the TextMate grammar
-  const lines = textDocument.getText().split(/\r?\n/g);
-  let ruleStack: StateStack | null = null;
-  const diagnostics: Diagnostic[] = [];
-  let problems = 0;
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const result = grammar.tokenizeLine(line, ruleStack);
-    ruleStack = result.ruleStack;
-
-    // Iterate through the tokens and validate them
-    for (const token of result.tokens) {
-      const tokenText = line.substring(token.startIndex, token.endIndex);
-      const tokenScopes = token.scopes;
-
-      // Validate the token based on its scope(s)
-      if (isValidToken(tokenScopes)) {
-        // Token is valid, do nothing
-      } else {
-        // Token is invalid, create a diagnostic
-        if (problems < settings.maxNumberOfProblems) {
-          problems++;
-          const diagnostic: Diagnostic = {
-            severity: DiagnosticSeverity.Warning,
-            range: {
-              start: { line: i, character: token.startIndex },
-              end: { line: i, character: token.endIndex },
-            },
-            message: `Invalid token: ${tokenText}`,
-            source: 'ex',
-          };
-          diagnostics.push(diagnostic);
-        }
-      }
-    }
-  }
-
-  // Send the diagnostics to the client (VSCode).
-  connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
-}
-
-// Define the function isValidToken that checks if the token scope(s) match the allowed scopes
-function isValidToken(scopes: string[]): boolean {
-  // Define the allowed token scopes based on your TextMate grammar
-  const allowedScopes = [
-    'source.nsm',
-    // Add more allowed scopes as needed
-  ];
-
-  // Check if any of the token scopes match the allowed scopes
-  for (const scope of scopes) {
-    if (allowedScopes.includes(scope)) {
-      return true;
-    }
-  }
-
-  return false;
 }
 
 // =============================================================================
@@ -473,7 +410,11 @@ connection.onCompletion(
     // The pass parameter contains the position of the text document in
     // which code complete got requested. For the NSM server we ignore this
     // info and always provide the same completion items.
-    return Array.from(grammarWords).map((word, index) => ({
+    const allWords = new Set([
+      ...Array.from(grammarWords),
+      ...Array.from(customMolecules),
+    ]);
+    return Array.from(allWords).map((word, index) => ({
       label: word,
       kind: CompletionItemKind.Text,
       data: index,

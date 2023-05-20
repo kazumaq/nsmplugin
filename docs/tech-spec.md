@@ -73,6 +73,19 @@ Auxiliary words: AND, OR, NOT, IF, OF, THAT, BY, MORE, LESS, THAN, CAN, MUST, SH
 
 Specify how the words can be combined in the NSM syntax.
 
+- Statements should finish with `;`
+- New molecules should have the following format:
+
+```python
+   """molecule name # The immediate text forms the molecule name or syntax. If it doesn't exist the text inside is ignored.
+   <sentence 1 that form a NSM concept>
+   <sentence 2 that form a NSM concept>
+   <etc.>
+   """
+```
+
+From this point on, the concept explained in the body
+
 #### Guidelines for defining and using molecules in the plugin.
 
 As part of the guidelines for defining and using molecules in the plugin, we established the following:
