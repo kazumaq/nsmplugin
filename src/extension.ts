@@ -1,4 +1,3 @@
-import * as path from 'path';
 import { createLanguageClient } from '../client/src/client';
 
 // Import the VS Code extensibility API

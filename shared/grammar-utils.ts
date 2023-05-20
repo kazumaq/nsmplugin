@@ -11,15 +11,20 @@ import { loadWASM, OnigScanner, OnigString } from 'onigasm';
 
 // Load onigasm WASM binary and create onigLib
 async function loadOnigLib(): Promise<IOnigLib> {
-  const wasmPath = require.resolve('onigasm/lib/onigasm.wasm');
-  const wasmBinary = fs.readFileSync(wasmPath);
-  const wasmBuffer = new Uint8Array(wasmBinary).buffer;
+  try {
+    const wasmPath = require.resolve('onigasm/lib/onigasm.wasm');
+    const wasmBinary = fs.readFileSync(wasmPath);
+    const wasmBuffer = new Uint8Array(wasmBinary).buffer;
 
-  await loadWASM(wasmBuffer);
-  return {
-    createOnigScanner: (sources) => new OnigScanner(sources),
-    createOnigString: (str) => new OnigString(str),
-  };
+    await loadWASM(wasmBuffer);
+    return {
+      createOnigScanner: (sources) => new OnigScanner(sources),
+      createOnigString: (str) => new OnigString(str),
+    };
+  } catch (error) {
+    console.error('Error loading onigasm WASM binary:', error);
+    throw error;
+  }
 }
 
 export const SCOPE_NSM = 'source.nsm';
@@ -46,9 +51,14 @@ export function createRegistryInstance(): Registry {
 }
 
 export async function loadGrammar(registry: Registry): Promise<IGrammar> {
-  const grammarData = fs.readFileSync(GRAMMAR_PATH, 'utf8');
-  const grammarJson = JSON.parse(grammarData);
-  const grammar = await registry.addGrammar(grammarJson);
+  try {
+    const grammarData = fs.readFileSync(GRAMMAR_PATH, 'utf8');
+    const grammarJson = JSON.parse(grammarData);
+    const grammar = await registry.addGrammar(grammarJson);
 
-  return grammar;
+    return grammar;
+  } catch (error) {
+    console.error('Error loading grammar:', error);
+    throw error;
+  }
 }

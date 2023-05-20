@@ -16,8 +16,15 @@ import {
 } from 'vscode-languageserver/node';
 
 import { IGrammar, Registry } from 'vscode-textmate';
-import * as path from 'path';
 import { debounce } from 'lodash';
+
+import {
+  createDiagnostic,
+  hasConfigurationCapability,
+  hasWorkspaceFolderCapability,
+  replaceCommentsWithWhitespace,
+  checkClientCapabilities,
+} from './utils';
 
 const grammarWords = new Set([
   'A LONG TIME',
@@ -105,23 +112,9 @@ const grammarWords = new Set([
 ]);
 let customMolecules = new Set<string>();
 
-const pathToGrammar = path.join(
-  __dirname,
-  '..',
-  '..',
-  '..',
-  'syntaxes',
-  'nsm.tmLanguage.json'
-);
-
-const CONFIG_SECTION_NAME = 'nsmLanguageServer';
-const MOLECULE_PATTERN =
-  /\"\"\"[ \t]*([a-zA-Z0-9_]+)[ \t]*\n+([a-zA-Z0-9_\n ]+)\n\"\"\"/g;
-const BLOCK_COMMENT_PATTERN = /\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm;
-const LINE_COMMENT_PATTERN = /#.*/g;
-const DOUBLE_QUOTED_STRING_PATTERN = /"([^"\\]*(\\.[^"\\]*)*)"/g;
-
 import { TextDocument } from 'vscode-languageserver-textdocument';
+
+import { CONFIG_SECTION_NAME, MOLECULE_PATTERN } from './constants';
 
 import {
   createRegistryInstance,
@@ -157,26 +150,6 @@ const connection = createConnection(ProposedFeatures.all);
 // The TextDocuments class provides methods to work with text documents,
 // like getting the content, listening for changes, etc.
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
-
-// Flags to store client capabilities
-let hasConfigurationCapability = false;
-let hasWorkspaceFolderCapability = false;
-let hasDiagnosticRelatedInformationCapability = false;
-
-// Extract client capabilities check into a function
-function checkClientCapabilities(capabilities: any) {
-  hasConfigurationCapability = !!(
-    capabilities.workspace && !!capabilities.workspace.configuration
-  );
-  hasWorkspaceFolderCapability = !!(
-    capabilities.workspace && !!capabilities.workspace.workspaceFolders
-  );
-  hasDiagnosticRelatedInformationCapability = !!(
-    capabilities.textDocument &&
-    capabilities.textDocument.publishDiagnostics &&
-    capabilities.textDocument.publishDiagnostics.relatedInformation
-  );
-}
 
 // =============================================================================
 // Server initialization
@@ -317,14 +290,16 @@ documents.onDidChangeContent((change) => {
 });
 
 async function updateCustomMolecules(document: TextDocument): Promise<void> {
-  console.log('in updateCustomMolecules()');
-  // Extract the molecules from the document
-  customMolecules = extractMolecules(document.getText());
-  console.log(
-    'updateCustomMolecules(), current custom molecules: ' + [...customMolecules]
-  );
+  try {
+    console.log('in updateCustomMolecules()');
+    // Extract the molecules from the document
+    customMolecules = extractMolecules(document.getText());
+  } catch (err) {
+    console.error('Error updating custom molecules:', err);
+  }
 }
 
+//
 function getMatchedMolecules(text: string): string[] {
   const molecules = [];
   let match;
@@ -342,39 +317,6 @@ function extractMolecules(text: string): Set<string> {
   const molecules = new Set<string>(getMatchedMolecules(text));
   return molecules;
 }
-
-function replaceCommentsWithWhitespace(text: string): string {
-  // This pattern matches block comments, line comments, and double-quoted strings.
-  // All these will be replaced with whitespaces.
-  const pattern = new RegExp(
-    `(?:${BLOCK_COMMENT_PATTERN.source})|(?:${LINE_COMMENT_PATTERN.source})|(?:${DOUBLE_QUOTED_STRING_PATTERN.source})`,
-    'g'
-  );
-
-  let result = text.replace(pattern, (match: string) => {
-    const replaced = match.replace(/[^\r\n]/g, ' ');
-    return replaced;
-  });
-
-  return result;
-}
-
-const createDiagnostic = (
-  word: string,
-  match: RegExpExecArray,
-  textDocument: TextDocument
-): Diagnostic => {
-  const diagnostic: Diagnostic = {
-    severity: DiagnosticSeverity.Warning,
-    range: {
-      start: textDocument.positionAt(match.index),
-      end: textDocument.positionAt(match.index + word.length),
-    },
-    message: `${word} is not a valid NSM keyword.`,
-    source: 'nsm',
-  };
-  return diagnostic;
-};
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   try {
