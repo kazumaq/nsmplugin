@@ -16,7 +16,6 @@ import {
 } from 'vscode-languageserver/node';
 
 import { IGrammar, Registry } from 'vscode-textmate';
-import * as fs from 'fs';
 import * as path from 'path';
 import { debounce } from 'lodash';
 
@@ -114,6 +113,13 @@ const pathToGrammar = path.join(
   'syntaxes',
   'nsm.tmLanguage.json'
 );
+
+const CONFIG_SECTION_NAME = 'nsmLanguageServer';
+const MOLECULE_PATTERN =
+  /\"\"\"[ \t]*([a-zA-Z0-9_]+)[ \t]*\n+([a-zA-Z0-9_\n ]+)\n\"\"\"/g;
+const BLOCK_COMMENT_PATTERN = /\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm;
+const LINE_COMMENT_PATTERN = /#.*/g;
+const DOUBLE_QUOTED_STRING_PATTERN = /"([^"\\]*(\\.[^"\\]*)*)"/g;
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
@@ -262,14 +268,7 @@ connection.onDidChangeConfiguration((change) => {
 });
 
 // Get document settings
-// This function retrieves the settings for a specific document (identified by its URI)
-// and returns a Promise that resolves to an object containing those settings.
-// If the client doesn't have configuration capability, it will return the global settings.
 function getDocumentSettings(resource: string): Thenable<NSMServerSettings> {
-  // Check if the client has configuration capability
-  // (i.e., if it can handle workspace/configuration requests).
-  // If not, return a Promise that resolves to the global settings.
-  // More info on configuration capability: https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspace_configuration
   if (!hasConfigurationCapability) {
     return Promise.resolve(globalSettings);
   }
@@ -277,20 +276,12 @@ function getDocumentSettings(resource: string): Thenable<NSMServerSettings> {
   // Try to get the document settings from the documentSettings Map.
   let result = documentSettings.get(resource);
 
-  // If the settings are not found in the Map, request the configuration
-  // from the client using the connection.workspace.getConfiguration method.
   if (!result) {
-    // The getConfiguration method takes an object with two properties:
-    // scopeUri (the document URI) and section (the configuration section name).
-    // In this case, the section is 'nsmLanguageServer'.
-    // More info on getConfiguration: https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspace_getConfiguration
     result = connection.workspace.getConfiguration({
       scopeUri: resource,
-      section: 'nsmLanguageServer',
+      section: CONFIG_SECTION_NAME,
     });
 
-    // Store the retrieved settings in the documentSettings Map
-    // for future use, so we don't have to request them again.
     documentSettings.set(resource, result);
   }
 
@@ -328,12 +319,10 @@ async function updateCustomMolecules(document: TextDocument): Promise<void> {
 
 //
 function getMatchedMolecules(text: string): string[] {
-  const moleculePattern =
-    /\"\"\"[ \t]*([a-zA-Z0-9_]+)[ \t]*\n+([a-zA-Z0-9_\n ]+)\n\"\"\"/g;
   const molecules = [];
   let match;
 
-  while ((match = moleculePattern.exec(text)) !== null) {
+  while ((match = MOLECULE_PATTERN.exec(text)) !== null) {
     molecules.push(match[1]);
   }
 
@@ -348,12 +337,10 @@ function extractMolecules(text: string): Set<string> {
 }
 
 function replaceCommentsWithWhitespace(text: string): string {
-  const blockCommentPattern = /\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm;
-  const lineCommentPattern = /#.*/g;
-  const doubleQuotedStringPattern = /"([^"\\]*(\\.[^"\\]*)*)"/g;
-
+  // This pattern matches block comments, line comments, and double-quoted strings.
+  // All these will be replaced with whitespaces.
   const pattern = new RegExp(
-    `(?:${blockCommentPattern.source})|(?:${lineCommentPattern.source})|(?:${doubleQuotedStringPattern.source})`,
+    `(?:${BLOCK_COMMENT_PATTERN.source})|(?:${LINE_COMMENT_PATTERN.source})|(?:${DOUBLE_QUOTED_STRING_PATTERN.source})`,
     'g'
   );
 
@@ -365,12 +352,11 @@ function replaceCommentsWithWhitespace(text: string): string {
   return result;
 }
 
-// Add function to create diagnostics for a given word
-function createDiagnostic(
+const createDiagnostic = (
   word: string,
   match: RegExpExecArray,
   textDocument: TextDocument
-): Diagnostic {
+): Diagnostic => {
   const diagnostic: Diagnostic = {
     severity: DiagnosticSeverity.Warning,
     range: {
@@ -381,7 +367,7 @@ function createDiagnostic(
     source: 'nsm',
   };
   return diagnostic;
-}
+};
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   console.log('in validateTextDocument()');
