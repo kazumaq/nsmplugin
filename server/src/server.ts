@@ -114,21 +114,6 @@ const pathToGrammar = path.join(
   'syntaxes',
   'nsm.tmLanguage.json'
 );
-const pathToCustomMolecules = path.join(
-  __dirname,
-  '..',
-  '..',
-  '..',
-  'shared',
-  'customMolecules.json'
-);
-const pathToAuxiliaryDebugFile = path.join(
-  __dirname,
-  '..',
-  '..',
-  '..',
-  'file.txt'
-);
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
@@ -139,33 +124,6 @@ import {
 
 let registry: Registry; // Registry object from vscode-textmate, responsible for managing and loading grammars
 let grammar: IGrammar; // IGrammar interface from vscode-textmate, used to tokenize text
-
-async function loadCustomMolecules(): Promise<Set<string>> {
-  try {
-    if (!fs.existsSync(pathToCustomMolecules)) {
-      return new Set();
-    }
-    const customMoleculesData = await fs.promises.readFile(
-      pathToCustomMolecules,
-      'utf8'
-    );
-    const customMoleculesJson = JSON.parse(customMoleculesData);
-    customMolecules = new Set(customMoleculesJson.customMolecules);
-    return customMolecules;
-  } catch (err) {
-    console.error(`Error loading custom molecules: ${err}`);
-    return new Set();
-  }
-}
-
-// Create a function to update customWords.json with the new custom words
-async function saveCustomMolecules(
-  customMolecules: Set<string>
-): Promise<void> {
-  customMolecules = new Set(customMolecules);
-  const jsonString = JSON.stringify(Array.from(customMolecules));
-  await fs.promises.writeFile(pathToCustomMolecules, jsonString, 'utf-8');
-}
 
 async function initializeGrammar(): Promise<void> {
   // Create a new Registry instance with the onigLib and loadGrammar callback
@@ -246,22 +204,6 @@ connection.onInitialize((params: InitializeParams) => {
 // =============================================================================
 // Server event listeners
 // =============================================================================
-// Server event listeners are functions that react to various events occurring
-// during the server's lifecycle. They help in handling different client-server
-// interactions like initialization, changes in workspace or documents, etc.
-//
-// Some common event types are:
-// 1. onInitialize: Triggers when the server initializes.
-// 2. onInitialized: Triggers after the server initializes.
-// 3. onDidChangeConfiguration: Triggers when client configuration changes.
-// 4. onDidChangeWorkspaceFolders: Triggers when workspace folders change.
-// 5. onDidChangeContent: Triggers when the content of a text document changes.
-// 6. onCompletion: Triggers when a completion is requested by the client.
-// 7. onCompletionResolve: Triggers when additional info is requested for a completion item.
-//
-// More events can be found in the LSP Specification:
-// https://microsoft.github.io/language-server-protocol/specifications/specification-current/#_event_types
-//
 // Remember to register listeners to handle desired events and provide custom functionality.
 
 // The 'onInitialized' event is triggered after the server is initialized.
@@ -374,20 +316,10 @@ documents.onDidChangeContent((change) => {
 async function updateCustomMolecules(document: TextDocument): Promise<void> {
   console.log('in updateCustomMolecules()');
   // Extract the molecules from the document
-  const newMolecules = extractMolecules(document.getText());
-
-  // Load the existing custom words from customWords.json
-  const customWords = await loadCustomMolecules();
-
-  // Check if there are any changes in the molecules
-  if (!areSetsEqual(newMolecules, customWords)) {
-    console.log('Changes detected in custom molecules');
-    // Save the updated custom words to customWords.json
-    await saveCustomMolecules(newMolecules);
-    console.log('Custom molecules updated');
-  } else {
-    console.log('No changes in custom molecules');
-  }
+  customMolecules = extractMolecules(document.getText());
+  console.log(
+    'updateCustomMolecules(), current custom molecules: ' + [...customMolecules]
+  );
 }
 
 // Create a function to extract molecules from the document
@@ -405,29 +337,6 @@ function extractMolecules(text: string): Set<string> {
   return molecules;
 }
 
-function areSetsEqual<T>(setA: Set<T>, setB: Set<T>): boolean {
-  if (setA.size !== setB.size) {
-    return false;
-  }
-
-  for (const item of setA) {
-    if (!setB.has(item)) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-// Utility function for writing debug messages to a file
-function writeDebugMessageToFile(message: string): void {
-  fs.appendFile(pathToAuxiliaryDebugFile, message + '\n', (err) => {
-    if (err) {
-      console.error(`Error writing debug message to file: ${err}`);
-    }
-  });
-}
-
 function replaceCommentsWithWhitespace(text: string): string {
   const blockCommentPattern = /\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm;
   const lineCommentPattern = /#.*/g;
@@ -439,14 +348,7 @@ function replaceCommentsWithWhitespace(text: string): string {
   );
 
   let result = text.replace(pattern, (match: string) => {
-    // Write matched string to debug file
-    writeDebugMessageToFile(`Matched: ${match}`);
-
     const replaced = match.replace(/[^\r\n]/g, ' ');
-
-    // Write replaced string to debug file
-    writeDebugMessageToFile(`Replaced: ${replaced}`);
-
     return replaced;
   });
 
@@ -454,6 +356,7 @@ function replaceCommentsWithWhitespace(text: string): string {
 }
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
+  console.log('in validateTextDocument()');
   // Get the document settings for each validation run.
   const settings = await getDocumentSettings(textDocument.uri);
 
@@ -468,7 +371,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 
   while ((match = pattern.exec(strippedText))) {
     const word = match[0];
-    if (!grammarWords.has(word)) {
+    if (!grammarWords.has(word) && !customMolecules.has(word)) {
       const diagnostic: Diagnostic = {
         severity: DiagnosticSeverity.Warning,
         range: {
