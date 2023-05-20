@@ -154,16 +154,8 @@ let hasConfigurationCapability = false;
 let hasWorkspaceFolderCapability = false;
 let hasDiagnosticRelatedInformationCapability = false;
 
-// =============================================================================
-// Server initialization
-// =============================================================================
-
-// The 'onInitialize' event is triggered when the server is initialized.
-// We use it to check for the client's capabilities and set up our server accordingly.
-connection.onInitialize((params: InitializeParams) => {
-  const capabilities = params.capabilities;
-
-  // Check for client capabilities
+// Extract client capabilities check into a function
+function checkClientCapabilities(capabilities: any) {
   hasConfigurationCapability = !!(
     capabilities.workspace && !!capabilities.workspace.configuration
   );
@@ -175,6 +167,19 @@ connection.onInitialize((params: InitializeParams) => {
     capabilities.textDocument.publishDiagnostics &&
     capabilities.textDocument.publishDiagnostics.relatedInformation
   );
+}
+
+// =============================================================================
+// Server initialization
+// =============================================================================
+
+// The 'onInitialize' event is triggered when the server is initialized.
+// We use it to check for the client's capabilities and set up our server accordingly.
+connection.onInitialize((params: InitializeParams) => {
+  const capabilities = params.capabilities;
+
+  // Check for client capabilities
+  checkClientCapabilities(capabilities);
 
   // Return the server's capabilities in response to the client's `initialize` request.
   const result: InitializeResult = {
@@ -309,7 +314,6 @@ const debouncedUpdateAndValidate = debounce(async (document: TextDocument) => {
 // This event is emitted when the text document is first opened or when its content has changed.
 // It triggers the 'validateTextDocument' function to validate the content of the document.
 documents.onDidChangeContent((change) => {
-  console.log('onDidChangeContent triggered');
   debouncedUpdateAndValidate(change.document);
 });
 
@@ -322,18 +326,24 @@ async function updateCustomMolecules(document: TextDocument): Promise<void> {
   );
 }
 
-// Create a function to extract molecules from the document
-function extractMolecules(text: string): Set<string> {
-  console.log('in extractMolecules()');
+//
+function getMatchedMolecules(text: string): string[] {
   const moleculePattern =
     /\"\"\"[ \t]*([a-zA-Z0-9_]+)[ \t]*\n+([a-zA-Z0-9_\n ]+)\n\"\"\"/g;
-  const molecules = new Set<string>();
+  const molecules = [];
   let match;
 
   while ((match = moleculePattern.exec(text)) !== null) {
-    molecules.add(match[1]);
+    molecules.push(match[1]);
   }
 
+  return molecules;
+}
+
+// Create a function to extract molecules from the document
+function extractMolecules(text: string): Set<string> {
+  console.log('in extractMolecules()');
+  const molecules = new Set<string>(getMatchedMolecules(text));
   return molecules;
 }
 
@@ -355,6 +365,24 @@ function replaceCommentsWithWhitespace(text: string): string {
   return result;
 }
 
+// Add function to create diagnostics for a given word
+function createDiagnostic(
+  word: string,
+  match: RegExpExecArray,
+  textDocument: TextDocument
+): Diagnostic {
+  const diagnostic: Diagnostic = {
+    severity: DiagnosticSeverity.Warning,
+    range: {
+      start: textDocument.positionAt(match.index),
+      end: textDocument.positionAt(match.index + word.length),
+    },
+    message: `${word} is not a valid NSM keyword.`,
+    source: 'nsm',
+  };
+  return diagnostic;
+}
+
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   console.log('in validateTextDocument()');
   // Get the document settings for each validation run.
@@ -372,15 +400,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   while ((match = pattern.exec(strippedText))) {
     const word = match[0];
     if (!grammarWords.has(word) && !customMolecules.has(word)) {
-      const diagnostic: Diagnostic = {
-        severity: DiagnosticSeverity.Warning,
-        range: {
-          start: textDocument.positionAt(match.index),
-          end: textDocument.positionAt(match.index + word.length),
-        },
-        message: `${word} is not a valid NSM keyword.`,
-        source: 'nsm',
-      };
+      const diagnostic = createDiagnostic(word, match, textDocument);
       diagnostics.push(diagnostic);
     }
   }
