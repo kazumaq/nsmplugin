@@ -2,7 +2,7 @@
   "name": "nsmplugin",
   "displayName": "NSM Language Support",
   "description": "Syntax highlighting and language support for Natural Semantic Metalanguage (NSM)",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/kazumaq/nsmplugin.git"
