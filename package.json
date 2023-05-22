@@ -1,23 +1,30 @@
 {
   "name": "nsmplugin",
+  "version": "0.1.0",
+  "publisher": "kazuma",
+  "engines": {
+    "vscode": "^1.78.0"
+  },
+  "license": "MIT",
   "displayName": "NSM Language Support",
   "description": "Syntax highlighting and language support for Natural Semantic Metalanguage (NSM)",
-  "version": "0.1.0",
+  "categories": [
+    "Other",
+    "Linters"
+  ],
+  "keywords": [
+    "Natural Semantic Metalanguage",
+    "NSM",
+    "NSM Primes"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/kazumaq/nsmplugin.git"
   },
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/kazumaq/nsmplugin/issues"
   },
   "homepage": "https://github.com/kazumaq/nsmplugin#readme",
-  "engines": {
-    "vscode": "^1.78.0"
-  },
-  "categories": [
-    "Other"
-  ],
   "main": "./out/src/extension.js",
   "contributes": {
     "commands": [
