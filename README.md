@@ -45,3 +45,20 @@ See the issues section in the repository.
 ### 0.1.0
 
 Initial release of `nsmplugin`
+
+# Contributing
+
+Your contributions are greatly appreciated! To contribute:
+
+1. Fork the project.
+2. Create a new branch in your fork.
+3. Make and test your changes.
+4. Submit a pull request.
+
+For significant changes, please discuss it in an issue before making the changes. This ensures consistency and quality in our project.
+
+# License
+
+This project is licensed under the MIT License. This permits use, modification, distribution, and selling of this software, provided original copyrights and permissions are included.
+
+The software is provided "as is", without any warranty. The authors or copyright holders aren't liable for any claims or damages arising from its use.
