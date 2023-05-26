@@ -36,8 +36,8 @@ dist/
 # yarn.lock
 
 # Ignore compiled TypeScript files
-**/*.js
-**/*.d.ts
+out/**/*.js
+out/**/*.d.ts
 
 # Ignore compiled JavaScript source maps
 **/*.js.map

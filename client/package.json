@@ -14,8 +14,7 @@
     "vscode-languageclient": "^8.1.0"
   },
   "devDependencies": {
-    "@types/vscode": "^1.78.0",
-    "@vscode/test-electron": "^2.3.0"
+    "@types/vscode": "^1.78.0"
   },
   "bugs": {
     "url": "https://github.com/kazumaq/nsmplugin/issues"
