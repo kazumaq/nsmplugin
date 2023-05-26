@@ -21,6 +21,6 @@
   "homepage": "https://github.com/kazumaq/nsmplugin#readme",
   "author": "",
   "devDependencies": {
-    "@types/strip-comments": "^2.0.1"
+    "@types/lodash": "^4.14.195"
   }
 }
